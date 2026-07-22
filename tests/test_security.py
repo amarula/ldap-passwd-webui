@@ -45,26 +45,26 @@ def test_ldap_escape_no_false_positives(app):
 
 class TestCsrf:
     def test_form_contains_csrf_token(self, client):
-        """Every GET response includes a CSRF token in the form."""
-        _status, _headers, body = client("GET", "/")
+        """The password-change form includes a CSRF token."""
+        _status, _headers, body = client("GET", "/change-password")
         assert 'name="csrf_token" value="' in body
 
     def test_set_cookie_present(self, client):
         """GET response sets a signed CSRF cookie."""
-        _status, headers, _body = client("GET", "/")
+        _status, headers, _body = client("GET", "/change-password")
         assert "Set-Cookie" in headers
         assert "csrf_token" in headers["Set-Cookie"]
         assert "HttpOnly" in headers["Set-Cookie"]
 
     def test_post_without_cookie_is_rejected(self, client):
         """POST without a CSRF cookie returns the error page."""
-        _status, headers, body = client("GET", "/")
+        _status, headers, body = client("GET", "/change-password")
         m = re.search(r'name="csrf_token" value="([^"]*)"', body)
         token = m.group(1)
 
         status, _headers, body = client(
             "POST",
-            "/",
+            "/change-password",
             body=f"csrf_token={token}&username=x&old-password=x&"
             "new-password=xxxxxxxx&confirm-password=xxxxxxxx",
         )
@@ -72,12 +72,12 @@ class TestCsrf:
 
     def test_post_with_wrong_token_is_rejected(self, client):
         """POST with a cookie but wrong CSRF token fails."""
-        _status, headers, body = client("GET", "/")
+        _status, headers, body = client("GET", "/change-password")
         cookie = headers.get("Set-Cookie", "").split(";")[0].strip()
 
         status, _headers, body = client(
             "POST",
-            "/",
+            "/change-password",
             body="csrf_token=wrong_token_12345&username=x&old-password=x&"
             "new-password=xxxxxxxx&confirm-password=xxxxxxxx",
             cookie=cookie,

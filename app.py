@@ -273,12 +273,7 @@ def set_security_headers():
 @get("/")
 def get_index():
     session = _get_session()
-    return template(
-        "index",
-        csrf_token=_get_csrf_cookie(),
-        password_policy=CONF["password"],
-        admin_session=session,
-    )
+    return template("welcome", admin_session=session)
 
 
 @post("/")
@@ -366,6 +361,22 @@ def post_index():
         password_policy=CONF["password"],
         alerts=[("success", "Password has been changed")],
     )
+
+
+@get("/change-password")
+def get_change_password():
+    session = _get_session()
+    return template(
+        "index",
+        csrf_token=_get_csrf_cookie(),
+        password_policy=CONF["password"],
+        admin_session=session,
+    )
+
+
+@post("/change-password")
+def post_change_password():
+    return post_index()
 
 
 # ---------------------------------------------------------------------------

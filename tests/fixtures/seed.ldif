@@ -1,0 +1,57 @@
+# Seed data for local testing.
+# Apply after the Docker containers are running:
+#
+#   docker exec ldap-test ldapadd -x -D "cn=admin,dc=example,dc=org" \
+#       -w admin123 -f tests/fixtures/seed.ldif
+#
+# Or via phpLDAPadmin at http://localhost:8081 (login: cn=admin,dc=example,dc=org / admin123)
+
+# --- Organisational Units ---
+dn: ou=People,dc=example,dc=org
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Groups,dc=example,dc=org
+objectClass: organizationalUnit
+ou: Groups
+
+# --- Admin group ---
+dn: cn=admins,ou=Groups,dc=example,dc=org
+objectClass: groupOfNames
+cn: admins
+member: uid=admin,ou=People,dc=example,dc=org
+member: uid=jdoe,ou=People,dc=example,dc=org
+
+# --- Regular group ---
+dn: cn=developers,ou=Groups,dc=example,dc=org
+objectClass: groupOfNames
+cn: developers
+member: uid=admin,ou=People,dc=example,dc=org
+
+# --- Users ---
+# Admin user (password: admin123)
+dn: uid=admin,ou=People,dc=example,dc=org
+objectClass: inetOrgPerson
+uid: admin
+cn: Admin User
+sn: User
+userPassword: admin123
+mail: admin@example.org
+
+# Regular user (password: user123)
+dn: uid=jdoe,ou=People,dc=example,dc=org
+objectClass: inetOrgPerson
+uid: jdoe
+cn: Jane Doe
+sn: Doe
+userPassword: user123
+mail: jane@example.org
+
+# Another regular user (password: user123)
+dn: uid=bsmith,ou=People,dc=example,dc=org
+objectClass: inetOrgPerson
+uid: bsmith
+cn: Bob Smith
+sn: Smith
+userPassword: user123
+mail: bob@example.org

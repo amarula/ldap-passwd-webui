@@ -91,13 +91,13 @@ class TestConfigurablePolicy:
             return s[0] if s else "", h, bd.decode()
 
         # GET
-        _s1, hdrs1, body1 = wsgi("GET", "/")
+        _s1, hdrs1, body1 = wsgi("GET", "/change-password")
         cookie = hdrs1.get("Set-Cookie", "").split(";")[0].strip()
         token = re.search(r'name="csrf_token" value="([^"]*)"', body1).group(1)
 
         def post(body_str):
             nonlocal cookie, token
-            s, h, b = wsgi("POST", "/", body_str, cookie)
+            s, h, b = wsgi("POST", "/change-password", body_str, cookie)
             if "Set-Cookie" in h:
                 cookie = h["Set-Cookie"].split(";")[0].strip()
             m = re.search(r'name="csrf_token" value="([^"]*)"', b)
@@ -166,7 +166,7 @@ class TestPolicyDescription:
 
         env = {
             "REQUEST_METHOD": "GET",
-            "PATH_INFO": "/",
+            "PATH_INFO": "/change-password",
             "SCRIPT_NAME": "",
             "SERVER_NAME": "lh",
             "SERVER_PORT": "80",

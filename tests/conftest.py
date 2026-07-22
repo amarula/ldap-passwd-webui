@@ -145,7 +145,7 @@ def session(client):
         def __init__(self):
             import re
 
-            _status, headers, body = client("GET", "/")
+            _status, headers, body = client("GET", "/change-password")
             self.csrf_token = re.search(
                 r'name="csrf_token" value="([^"]*)"', body
             ).group(1)
@@ -163,7 +163,7 @@ def session(client):
             form_data.setdefault("csrf_token", self.csrf_token)
             body_str = urlencode(form_data)
             status, headers, resp_body = client(
-                "POST", "/", body=body_str, cookie=self.cookie
+                "POST", "/change-password", body=body_str, cookie=self.cookie
             )
 
             new_cookie = headers.get("Set-Cookie", "")

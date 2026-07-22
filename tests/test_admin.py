@@ -77,10 +77,11 @@ class TestAdminPages:
         _s, _h, body = client("GET", "/login")
         assert 'name="csrf_token" value="' in body
 
-    def test_index_no_admin_link_without_session(self, client):
-        """The main index does NOT show an admin link for anonymous users."""
+    def test_index_is_welcome_page(self, client):
+        """The root page shows the welcome page with navigation options."""
         _s, _h, body = client("GET", "/")
-        assert "admin_panel_settings" not in body
+        assert "Change password" in body
+        assert "Administration" in body
 
 
 class TestSessionCookie:
