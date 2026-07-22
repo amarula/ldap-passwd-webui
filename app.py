@@ -1120,6 +1120,7 @@ bottle.TEMPLATE_PATH = [BASE_DIR]
 # Set default attributes to pass into templates.
 SimpleTemplate.defaults = dict(CONF["html"])
 SimpleTemplate.defaults["url"] = bottle.url
+SimpleTemplate.defaults["request"] = request
 SimpleTemplate.defaults["alerts"] = []
 
 if __name__ == "__main__":
