@@ -36,7 +36,7 @@
       <div class="md-top-app-bar__row">
         <span class="material-symbols-outlined md-top-app-bar__icon">admin_panel_settings</span>
         <span class="md-top-app-bar__title">Admin Login</span>
-        <a href="{{ request.script_name }}/" class="md-top-app-bar__admin-link" title="Back to password change">
+        <a href="{{ base_path }}/" class="md-top-app-bar__admin-link" title="Back to password change">
           <span class="material-symbols-outlined">lock</span>
         </a>
       </div>

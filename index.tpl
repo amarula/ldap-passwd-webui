@@ -38,13 +38,13 @@
     <!-- App bar -->
     <header class="md-top-app-bar">
       <div class="md-top-app-bar__row">
-        <a href="{{ request.script_name }}/" class="md-top-app-bar__home-link" title="Home">
+        <a href="{{ base_path }}/" class="md-top-app-bar__home-link" title="Home">
           <span class="material-symbols-outlined">arrow_back</span>
         </a>
         <span class="md-top-app-bar__title">{{ page_title }}</span>
         <span class="md-top-app-bar__spacer"></span>
         % if get('admin_session'):
-        <a href="{{ request.script_name }}/admin" class="md-top-app-bar__admin-link" title="Admin Panel">
+        <a href="{{ base_path }}/admin" class="md-top-app-bar__admin-link" title="Admin Panel">
           <span class="material-symbols-outlined">admin_panel_settings</span>
         </a>
         % end
@@ -55,7 +55,7 @@
     <main class="md-main">
       <div class="md-card md-card--elevated">
         <div class="md-card__content">
-          <form method="post" action="{{ request.script_name }}/change-password" id="password-form" novalidate>
+          <form method="post" action="{{ base_path }}/change-password" id="password-form" novalidate>
             <!-- CSRF token -->
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
