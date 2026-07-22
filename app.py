@@ -143,7 +143,7 @@ def _get_session() -> dict | None:
 def _require_admin():
     """Raise redirect to /login if there is no valid admin session."""
     if not _get_session():
-        redirect("/login")
+        redirect(request.script_name + "/login")
 
 
 def _clear_session() -> None:
@@ -433,7 +433,7 @@ def post_login():
         # Authentication + authorization succeeded.
         _set_session(username, user_dn)
         LOG.info("Admin login: %s", hashlib.sha256(username.encode()).hexdigest()[:8])
-        redirect("/admin")
+        redirect(request.script_name + "/admin")
 
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
         LOG.warning(
@@ -471,7 +471,7 @@ def post_login():
 @get("/logout")
 def get_logout():
     _clear_session()
-    redirect("/")
+    redirect(request.script_name + "/")
 
 
 # ---------------------------------------------------------------------------

@@ -38,7 +38,7 @@
         <span class="md-top-app-bar__title">Admin Panel</span>
         <div class="md-top-app-bar__actions">
           <span class="md-top-app-bar__user">{{ admin_session['user'] }}</span>
-          <a href="/logout" class="md-top-app-bar__admin-link" title="Logout">
+          <a href="{{ request.script_name }}/logout" class="md-top-app-bar__admin-link" title="Logout">
             <span class="material-symbols-outlined">logout</span>
           </a>
         </div>
@@ -60,7 +60,7 @@
               <span class="material-symbols-outlined">info</span>
               <span>Change any user's password. Leave target username empty to change your own.</span>
             </div>
-            <form method="post" action="/admin/change-password" class="md-admin-form" novalidate>
+            <form method="post" action="{{ request.script_name }}/admin/change-password" class="md-admin-form" novalidate>
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
               <div class="md-field">
@@ -121,7 +121,7 @@
               <span class="material-symbols-outlined">info</span>
               <span>Create a new LDAP user account and optionally add them to groups.</span>
             </div>
-            <form method="post" action="/admin/create-user" id="create-user-form" class="md-admin-form" novalidate>
+            <form method="post" action="{{ request.script_name }}/admin/create-user" id="create-user-form" class="md-admin-form" novalidate>
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
               <div class="md-field">
@@ -241,7 +241,7 @@
 
                 <div class="md-groups__section">
                   <h3 class="md-groups__heading">Add / Remove Member</h3>
-                  <form method="post" action="/admin/modify-group" class="md-admin-form" novalidate>
+                  <form method="post" action="{{ request.script_name }}/admin/modify-group" class="md-admin-form" novalidate>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
                     <div class="md-field">
@@ -288,7 +288,7 @@
 
                 <div class="md-groups__section">
                   <h3 class="md-groups__heading">Create Group</h3>
-                  <form method="post" action="/admin/create-group" class="md-admin-form" novalidate>
+                  <form method="post" action="{{ request.script_name }}/admin/create-group" class="md-admin-form" novalidate>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
                     <div class="md-field">
@@ -385,7 +385,7 @@
 
     // ── Fetch groups JSON ───────────────────────────────────────────────
     function fetchGroups() {
-      return fetch('/admin/groups')
+      return fetch('{{ request.script_name }}/admin/groups')
         .then(function (r) {
           if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
           return r.json();
@@ -521,7 +521,7 @@
       var username = document.getElementById('lookup-username').value.trim();
       if (!username) return;
 
-      fetch('/admin/user-groups?username=' + encodeURIComponent(username))
+      fetch('{{ request.script_name }}/admin/user-groups?username=' + encodeURIComponent(username))
         .then(function (r) {
         if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
         return r.json();
