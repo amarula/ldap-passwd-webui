@@ -872,6 +872,166 @@ body {
   font-size: 1.25rem;
 }
 
+.md-outlined-button--small {
+  height: 2rem;
+  padding: 0 var(--md-spacing-1);
+  font-size: 0.75rem;
+}
+
+/* ── Group Checklist (Create User tab) ───────────────────────────────── */
+
+.md-groups-checklist {
+  margin-bottom: var(--md-spacing-2);
+  border: 1px solid var(--md-outline-variant, #cac4d0);
+  border-radius: var(--md-shape-sm);
+}
+
+.md-groups-checklist__header {
+  display: flex;
+  align-items: center;
+  gap: var(--md-spacing-1);
+  padding: var(--md-spacing-1) var(--md-spacing-2);
+  background-color: var(--md-surface-variant, #e7e0e8);
+  font: var(--md-typescale-small);
+  font-weight: 500;
+  color: var(--md-on-surface-variant, #49454f);
+}
+
+.md-groups-checklist__header .material-symbols-outlined {
+  font-size: 1.125rem;
+}
+
+.md-groups-checklist__header button {
+  margin-left: auto;
+}
+
+.md-groups-checklist__list {
+  max-height: 12rem;
+  overflow-y: auto;
+  padding: var(--md-spacing-1);
+}
+
+/* ── Checkbox ──────────────────────────────────────────────────────── */
+
+.md-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--md-spacing-1);
+  padding: 0.375rem var(--md-spacing-1);
+  border-radius: var(--md-shape-sm);
+  cursor: pointer;
+  font: var(--md-typescale-body);
+  color: var(--md-on-surface, #1c1b1f);
+  transition: background-color var(--md-duration-short) var(--md-easing-standard);
+}
+
+.md-checkbox:hover {
+  background-color: var(--md-surface-variant, #e7e0e8);
+}
+
+.md-checkbox input[type="checkbox"] {
+  accent-color: var(--md-primary, #2e7d32);
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.md-checkbox__label {
+  flex: 1;
+}
+
+.md-checkbox__dn {
+  font: var(--md-typescale-small);
+  color: var(--md-on-surface-variant, #49454f);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 14rem;
+}
+
+/* ── Select (styled dropdown) ───────────────────────────────────────── */
+
+.md-field__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%2349454f' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1.5rem;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.md-field__select option {
+  color: var(--md-on-surface, #1c1b1f);
+  background-color: var(--md-surface, #fdfbff);
+}
+
+/* ── Compact field ──────────────────────────────────────────────────── */
+
+.md-field--compact {
+  min-height: 2.75rem;
+  margin-bottom: 0;
+  padding-left: 0.5rem;
+}
+
+.md-field--compact .md-field__input {
+  padding: 0.75rem 0.75rem 0.25rem 0;
+  font: var(--md-typescale-small);
+}
+
+.md-field--compact .md-field__label {
+  left: 2.5rem;
+  font: var(--md-typescale-small);
+}
+
+.md-field--compact .md-field__icon {
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+/* ── Groups toolbar ─────────────────────────────────────────────────── */
+
+.md-groups-toolbar {
+  display: flex;
+  gap: var(--md-spacing-1);
+  align-items: flex-end;
+  margin-bottom: var(--md-spacing-1);
+}
+
+/* ── Group detail panel ─────────────────────────────────────────────── */
+
+.md-groups-detail {
+  margin-top: var(--md-spacing-2);
+  padding: var(--md-spacing-2);
+  border: 1px solid var(--md-outline-variant, #cac4d0);
+  border-radius: var(--md-shape-sm);
+}
+
+.md-groups__detail-dn {
+  font: var(--md-typescale-small);
+  color: var(--md-on-surface-variant, #49454f);
+  word-break: break-all;
+  margin-bottom: var(--md-spacing-1);
+}
+
+.md-members-list {
+  list-style: none;
+  padding: 0;
+}
+
+.md-members-list li {
+  font: var(--md-typescale-small);
+  color: var(--md-on-surface-variant, #49454f);
+  padding: 0.25rem 0;
+  word-break: break-all;
+}
+
+.md-groups__summary {
+  font: var(--md-typescale-small);
+  color: var(--md-on-surface-variant, #49454f);
+  padding: var(--md-spacing-1) var(--md-spacing-2);
+}
+
 /* ── Admin: Responsive ─────────────────────────────────────────────────── */
 
 @media (max-width: 640px) {

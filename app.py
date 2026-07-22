@@ -626,6 +626,14 @@ def post_admin_create_user():
                     result.get("description", "Failed to create user.")
                 )
 
+            # Add user to selected groups.
+            group_dns = [g.strip() for g in form("groups", "").splitlines() if g.strip()]
+            for gdn in group_dns:
+                try:
+                    c.modify(gdn, {"member": [(MODIFY_ADD, [dn])]})
+                except Exception as e2:
+                    LOG.warning("Failed to add %s to group %s: %s", uid, gdn, e2)
+
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
         return error("Your admin password is incorrect!")
     except Error as e:
@@ -844,6 +852,65 @@ def get_admin_groups():
 
         response.content_type = "application/json"
         return json.dumps(groups)
+
+    except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
+        response.status = 401
+        return {"error": "Admin password incorrect"}
+    except Error as e:
+        response.status = 500
+        return {"error": str(e)}
+
+
+@get("/admin/user-groups")
+def get_admin_user_groups():
+    """Return JSON listing which groups a user belongs to."""
+    _require_admin()
+    session = _get_session()
+    username = request.query.getunicode("username", "")
+    admin_password = request.query.getunicode("admin-password", "")
+
+    if not username or not admin_password:
+        response.status = 400
+        return {"error": "Username and admin password required"}
+
+    conf = _ldap_conf()
+    safe_uid = ldap_escape(username)
+
+    try:
+        with connect_ldap(conf, authentication=SIMPLE, user=session["dn"],
+                          password=admin_password) as c:
+            c.bind()
+
+            user_dn = _find_user_dn(conf, c, safe_uid)
+            if not user_dn:
+                response.status = 404
+                return {"error": f"User '{username}' not found."}
+
+            # Search all groups where this user is a member.
+            group_base = (
+                CONF["admin"].get("group_base_dn")
+                if CONF.has_section("admin")
+                else conf["base"]
+            )
+
+            c.search(
+                group_base,
+                "(objectClass=groupOfNames)",
+                SUBTREE,
+                attributes=["cn", "member"],
+            )
+
+            groups = []
+            for entry in c.response:
+                members = entry.get("attributes", {}).get("member", [])
+                if any(m.lower() == user_dn.lower() for m in members):
+                    groups.append({
+                        "dn": entry.get("dn", ""),
+                        "cn": entry.get("attributes", {}).get("cn", [""])[0],
+                    })
+
+        response.content_type = "application/json"
+        return json.dumps({"username": username, "groups": groups})
 
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
         response.status = 401

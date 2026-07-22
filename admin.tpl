@@ -33,7 +33,6 @@
 
     <main class="md-main md-main--admin">
       <div class="md-card md-card--elevated md-card--admin">
-        <!-- Tab bar -->
         <nav class="md-tabs">
           <button class="md-tab md-tab--active" data-tab="tab-password">Change Password</button>
           <button class="md-tab" data-tab="tab-create-user">Create User</button>
@@ -65,8 +64,7 @@
                        placeholder=" " aria-label="New password">
                 <span class="md-field__label">New password</span>
                 <span class="md-field__outline"></span>
-                <button type="button" class="md-field__trailing-icon md-visibility-toggle"
-                        aria-label="Show password">
+                <button type="button" class="md-field__trailing-icon md-visibility-toggle" aria-label="Show password">
                   <span class="material-symbols-outlined">visibility</span>
                 </button>
               </div>
@@ -78,8 +76,7 @@
                        placeholder=" " aria-label="Confirm new password">
                 <span class="md-field__label">Confirm new password</span>
                 <span class="md-field__outline"></span>
-                <button type="button" class="md-field__trailing-icon md-visibility-toggle"
-                        aria-label="Show password">
+                <button type="button" class="md-field__trailing-icon md-visibility-toggle" aria-label="Show password">
                   <span class="material-symbols-outlined">visibility</span>
                 </button>
               </div>
@@ -108,9 +105,9 @@
           <div class="md-tab-panel" id="tab-create-user">
             <div class="md-admin-hint">
               <span class="material-symbols-outlined">info</span>
-              <span>Create a new LDAP user account. All fields except email are required.</span>
+              <span>Create a new LDAP user account and optionally add them to groups.</span>
             </div>
-            <form method="post" action="/admin/create-user" class="md-admin-form" novalidate>
+            <form method="post" action="/admin/create-user" id="create-user-form" class="md-admin-form" novalidate>
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
               <div class="md-field">
@@ -151,10 +148,25 @@
                        required placeholder=" " aria-label="Password">
                 <span class="md-field__label">Password</span>
                 <span class="md-field__outline"></span>
-                <button type="button" class="md-field__trailing-icon md-visibility-toggle"
-                        aria-label="Show password">
+                <button type="button" class="md-field__trailing-icon md-visibility-toggle" aria-label="Show password">
                   <span class="material-symbols-outlined">visibility</span>
                 </button>
+              </div>
+
+              <!-- Group assignment -->
+              <div class="md-groups-checklist">
+                <div class="md-groups-checklist__header">
+                  <span class="material-symbols-outlined">groups</span>
+                  <span>Add to groups (optional)</span>
+                  <button type="button" class="md-outlined-button md-outlined-button--small" id="btn-load-groups">
+                    <span class="material-symbols-outlined">refresh</span>
+                    <span>Load groups</span>
+                  </button>
+                </div>
+                <div class="md-groups-checklist__list" id="create-user-groups">
+                  <p class="md-groups__empty">Click "Load groups" to see available groups.</p>
+                </div>
+                <input type="hidden" name="groups" id="selected-groups" value="">
               </div>
 
               <div class="md-field">
@@ -177,16 +189,42 @@
             <div class="md-groups-layout">
               <div class="md-groups-left">
                 <h3 class="md-groups__heading">Groups</h3>
-                <button type="button" class="md-outlined-button" id="btn-refresh-groups">
-                  <span class="material-symbols-outlined">refresh</span>
-                  <span>Refresh</span>
-                </button>
+                <div class="md-groups-toolbar">
+                  <button type="button" class="md-outlined-button" id="btn-refresh-groups">
+                    <span class="material-symbols-outlined">refresh</span>
+                    <span>Refresh</span>
+                  </button>
+                </div>
                 <div class="md-groups-list" id="groups-list">
                   <p class="md-groups__empty">Click Refresh and enter your admin password to load groups.</p>
+                </div>
+                <div class="md-groups-detail" id="group-detail" style="display:none">
+                  <h4 class="md-groups__heading" id="detail-group-name"></h4>
+                  <p class="md-groups__detail-dn" id="detail-group-dn"></p>
+                  <div class="md-groups-detail__members" id="detail-group-members"></div>
                 </div>
               </div>
 
               <div class="md-groups-right">
+                <div class="md-groups__section">
+                  <h3 class="md-groups__heading">User Group Membership</h3>
+                  <div class="md-groups-toolbar">
+                    <div class="md-field md-field--compact">
+                      <input class="md-field__input" id="lookup-username" type="text"
+                             placeholder=" " aria-label="Username to look up">
+                      <span class="md-field__label">Username</span>
+                      <span class="md-field__outline"></span>
+                    </div>
+                    <button type="button" class="md-outlined-button" id="btn-lookup-user">
+                      <span class="material-symbols-outlined">search</span>
+                      <span>Look up</span>
+                    </button>
+                  </div>
+                  <div class="md-groups-list" id="user-groups-list">
+                    <p class="md-groups__empty">Enter a username and click Look up to see their groups.</p>
+                  </div>
+                </div>
+
                 <div class="md-groups__section">
                   <h3 class="md-groups__heading">Add / Remove Member</h3>
                   <form method="post" action="/admin/modify-group" class="md-admin-form" novalidate>
@@ -194,9 +232,10 @@
 
                     <div class="md-field">
                       <span class="md-field__icon material-symbols-outlined">group</span>
-                      <input class="md-field__input" name="group-dn" type="text" required
-                             placeholder=" " aria-label="Group DN">
-                      <span class="md-field__label">Group DN</span>
+                      <select class="md-field__input md-field__select" name="group-dn" id="modify-group-select" required
+                              aria-label="Select group">
+                        <option value="">Select a group...</option>
+                      </select>
                       <span class="md-field__outline"></span>
                     </div>
 
@@ -281,15 +320,14 @@
   (function () {
     'use strict';
 
-    // ── Tab switching ──────────────────────────────────────────────────
-    var tabs = document.querySelectorAll('.md-tab');
-    var panels = document.querySelectorAll('.md-tab-panel');
+    var adminPwd = null;
 
-    tabs.forEach(function (tab) {
+    // ── Tab switching ──────────────────────────────────────────────────
+    document.querySelectorAll('.md-tab').forEach(function (tab) {
       tab.addEventListener('click', function () {
         var target = this.getAttribute('data-tab');
-        tabs.forEach(function (t) { t.classList.remove('md-tab--active'); });
-        panels.forEach(function (p) { p.classList.remove('md-tab-panel--active'); });
+        document.querySelectorAll('.md-tab').forEach(function (t) { t.classList.remove('md-tab--active'); });
+        document.querySelectorAll('.md-tab-panel').forEach(function (p) { p.classList.remove('md-tab-panel--active'); });
         this.classList.add('md-tab--active');
         var panel = document.getElementById(target);
         if (panel) panel.classList.add('md-tab-panel--active');
@@ -300,65 +338,198 @@
     document.querySelectorAll('.md-visibility-toggle').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        var field = this.closest('.md-field');
-        var input = field.querySelector('.md-field__input');
+        var input = this.closest('.md-field').querySelector('.md-field__input');
         var icon = this.querySelector('.material-symbols-outlined');
-        if (input.type === 'password') {
-          input.type = 'text';
-          icon.textContent = 'visibility_off';
-        } else {
-          input.type = 'password';
-          icon.textContent = 'visibility';
-        }
+        if (input.type === 'password') { input.type = 'text'; icon.textContent = 'visibility_off'; }
+        else { input.type = 'password'; icon.textContent = 'visibility'; }
       });
     });
 
     // ── Field click to focus ────────────────────────────────────────────
     document.querySelectorAll('.md-field').forEach(function (field) {
       field.addEventListener('click', function (e) {
-        if (e.target.closest('button, a, [role="button"]')) return;
-        var input = this.querySelector('.md-field__input');
+        if (e.target.closest('button, a, select, [role="button"]')) return;
+        var input = this.querySelector('input');
         if (input) input.focus();
       });
     });
 
-    // ── Refresh groups list ─────────────────────────────────────────────
-    document.getElementById('btn-refresh-groups').addEventListener('click', function () {
-      var pwd = prompt('Enter your admin password to load groups:');
-      if (!pwd) return;
+    // ── Prompt for admin password (cached) ─────────────────────────────
+    function getAdminPwd() {
+      if (adminPwd) return Promise.resolve(adminPwd);
+      var pwd = prompt('Enter your admin password:');
+      if (!pwd) return Promise.reject(new Error('cancelled'));
+      adminPwd = pwd;
+      return Promise.resolve(pwd);
+    }
 
-      var list = document.getElementById('groups-list');
-      list.innerHTML = '<p class="md-groups__loading">Loading&hellip;</p>';
+    // ── Escape HTML ─────────────────────────────────────────────────────
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 
-      fetch('/admin/groups?admin-password=' + encodeURIComponent(pwd))
+    // ── Fetch groups JSON ───────────────────────────────────────────────
+    function fetchGroups(pwd) {
+      return fetch('/admin/groups?admin-password=' + encodeURIComponent(pwd))
         .then(function (r) {
           if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
           return r.json();
-        })
-        .then(function (groups) {
-          if (!groups.length) {
-            list.innerHTML = '<p class="md-groups__empty">No groups found.</p>';
-            return;
-          }
-          var html = '';
-          groups.forEach(function (g) {
-            var memberCount = Array.isArray(g.members) ? g.members.length : 0;
-            html += '<div class="md-group-item" title="' + g.dn.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '">';
-            html += '<span class="md-group-item__icon material-symbols-outlined">group</span>';
-            html += '<div class="md-group-item__info">';
-            html += '<span class="md-group-item__name">' + g.cn.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</span>';
-            html += '<span class="md-group-item__dn">' + g.dn.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</span>';
-            html += '<span class="md-group-item__count">' + memberCount + ' member(s)</span>';
-            html += '</div></div>';
-          });
-          list.innerHTML = html;
-        })
-        .catch(function (err) {
-          list.innerHTML = '<p class="md-groups__error">Error: ' + (err.message || 'Failed to load groups').replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</p>';
         });
+    }
+
+    // ── Populate group select ───────────────────────────────────────────
+    function populateGroupSelect(groups) {
+      var sel = document.getElementById('modify-group-select');
+      sel.innerHTML = '<option value="">Select a group...</option>';
+      groups.forEach(function (g) {
+        sel.innerHTML += '<option value="' + esc(g.dn) + '">' + esc(g.cn) + '</option>';
+      });
+    }
+
+    // ── Render groups list ─────────────────────────────────────────────
+    function renderGroupList(container, groups, clickHandler) {
+      if (!groups.length) {
+        container.innerHTML = '<p class="md-groups__empty">No groups found.</p>';
+        return;
+      }
+      var html = '';
+      groups.forEach(function (g, i) {
+        var cnt = Array.isArray(g.members) ? g.members.length : 0;
+        html += '<div class="md-group-item" data-dn="' + esc(g.dn) + '" data-cn="' + esc(g.cn) + '">';
+        html += '<span class="md-group-item__icon material-symbols-outlined">group</span>';
+        html += '<div class="md-group-item__info">';
+        html += '<span class="md-group-item__name">' + esc(g.cn) + '</span>';
+        html += '<span class="md-group-item__dn">' + esc(g.dn) + '</span>';
+        html += '<span class="md-group-item__count">' + cnt + ' member(s)</span>';
+        html += '</div></div>';
+      });
+      container.innerHTML = html;
+      if (clickHandler) {
+        container.querySelectorAll('.md-group-item').forEach(function (item) {
+          item.addEventListener('click', function () { clickHandler(this); });
+        });
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CREATE USER TAB — group checkboxes
+    // ══════════════════════════════════════════════════════════════════
+
+    document.getElementById('btn-load-groups').addEventListener('click', function () {
+      getAdminPwd().then(function (pwd) {
+        return fetchGroups(pwd);
+      }).then(function (groups) {
+        var container = document.getElementById('create-user-groups');
+        if (!groups.length) {
+          container.innerHTML = '<p class="md-groups__empty">No groups available.</p>';
+          return;
+        }
+        var html = '';
+        groups.forEach(function (g) {
+          html += '<label class="md-checkbox">';
+          html += '<input type="checkbox" name="create-user-group" value="' + esc(g.dn) + '">';
+          html += '<span class="md-checkbox__label">' + esc(g.cn) + '</span>';
+          html += '<span class="md-checkbox__dn">' + esc(g.dn) + '</span>';
+          html += '</label>';
+        });
+        container.innerHTML = html;
+      }).catch(function (err) {
+        document.getElementById('create-user-groups').innerHTML =
+          '<p class="md-groups__error">' + esc(err.message || 'Error') + '</p>';
+      });
     });
 
-    // ── Snackbar ────────────────────────────────────────────────────────
+    // Collect selected group DNs before form submit
+    document.getElementById('create-user-form').addEventListener('submit', function () {
+      var checked = this.querySelectorAll('input[name="create-user-group"]:checked');
+      var dns = [];
+      checked.forEach(function (cb) { dns.push(cb.value); });
+      document.getElementById('selected-groups').value = dns.join('\n');
+    });
+
+    // ══════════════════════════════════════════════════════════════════
+    // GROUPS TAB — shared refresh
+    // ══════════════════════════════════════════════════════════════════
+
+    function refreshGroupsForTab() {
+      getAdminPwd().then(function (pwd) {
+        return fetchGroups(pwd);
+      }).then(function (groups) {
+        // Populate left panel list
+        var list = document.getElementById('groups-list');
+        renderGroupList(list, groups, function (item) {
+          // Show group detail
+          var dn = item.getAttribute('data-dn');
+          var cn = item.getAttribute('data-cn');
+          document.getElementById('detail-group-name').textContent = cn;
+          document.getElementById('detail-group-dn').textContent = dn;
+          var g = groups.find(function (x) { return x.dn === dn; });
+          var membersDiv = document.getElementById('detail-group-members');
+          if (g) {
+            var mHtml = '<ul class="md-members-list">';
+            (g.members || []).forEach(function (m) {
+              mHtml += '<li>' + esc(m) + '</li>';
+            });
+            mHtml += '</ul>';
+            membersDiv.innerHTML = mHtml;
+          } else {
+            membersDiv.innerHTML = '<p class="md-groups__empty">Select a group to see members.</p>';
+          }
+          document.getElementById('group-detail').style.display = 'block';
+        });
+
+        // Populate the modify-group select
+        populateGroupSelect(groups);
+      }).catch(function (err) {
+        document.getElementById('groups-list').innerHTML =
+          '<p class="md-groups__error">' + esc(err.message || 'Error') + '</p>';
+      });
+    }
+
+    document.getElementById('btn-refresh-groups').addEventListener('click', refreshGroupsForTab);
+
+    // ══════════════════════════════════════════════════════════════════
+    // GROUPS TAB — user lookup
+    // ══════════════════════════════════════════════════════════════════
+
+    document.getElementById('btn-lookup-user').addEventListener('click', function () {
+      var username = document.getElementById('lookup-username').value.trim();
+      if (!username) return;
+
+      getAdminPwd().then(function (pwd) {
+        return fetch('/admin/user-groups?username=' + encodeURIComponent(username) +
+                     '&admin-password=' + encodeURIComponent(pwd));
+      }).then(function (r) {
+        if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
+        return r.json();
+      }).then(function (data) {
+        var container = document.getElementById('user-groups-list');
+        if (!data.groups || !data.groups.length) {
+          container.innerHTML = '<p class="md-groups__empty">User <strong>' + esc(username) +
+            '</strong> is not a member of any group.</p>';
+          return;
+        }
+        var html = '<p class="md-groups__summary">' + esc(username) + ' belongs to ' +
+          data.groups.length + ' group(s):</p>';
+        data.groups.forEach(function (g) {
+          html += '<div class="md-group-item">';
+          html += '<span class="md-group-item__icon material-symbols-outlined">group</span>';
+          html += '<div class="md-group-item__info">';
+          html += '<span class="md-group-item__name">' + esc(g.cn) + '</span>';
+          html += '<span class="md-group-item__dn">' + esc(g.dn) + '</span>';
+          html += '</div></div>';
+        });
+        container.innerHTML = html;
+      }).catch(function (err) {
+        document.getElementById('user-groups-list').innerHTML =
+          '<p class="md-groups__error">' + esc(err.message || 'Error') + '</p>';
+      });
+    });
+
+    // ══════════════════════════════════════════════════════════════════
+    // Snackbar
+    // ══════════════════════════════════════════════════════════════════
+
     % if alerts:
     (function () {
       var type = '{{ alerts[0][0] }}';
