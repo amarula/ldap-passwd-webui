@@ -172,13 +172,16 @@ def _check_admin_group(conn: Connection, user_dn: str) -> bool:
     if not group_dn:
         return False
     safe_dn = ldap_escape(user_dn)
-    conn.search(
-        group_dn,
-        "(member=%s)" % safe_dn,
-        SUBTREE,
-        attributes=["dn"],
-    )
-    return len(conn.response) > 0
+    try:
+        conn.search(
+            group_dn,
+            "(member=%s)" % safe_dn,
+            SUBTREE,
+            attributes=[],
+        )
+        return len(conn.response) > 0
+    except Exception:
+        return False
 
 
 def _ldap_conf() -> ConfigParser:
@@ -389,13 +392,9 @@ def post_login():
         conf = _ldap_conf()
         safe_uid = ldap_escape(username)
 
-        # Bind as the user to verify credentials.
-        user_dn = None
-        with connect_ldap(conf) as c:
-            user_dn = _find_user_dn(conf, c, safe_uid)
-
-        if not user_dn:
-            raise Error("Username or password is incorrect!")
+        # Construct the user DN from the base + uid and try to bind.
+        # This avoids an anonymous search (which many LDAP servers disallow).
+        user_dn = "uid=%s,%s" % (safe_uid, conf["base"])
 
         with connect_ldap(conf, authentication=SIMPLE, user=user_dn, password=password) as c:
             c.bind()
@@ -410,6 +409,14 @@ def post_login():
         LOG.info("Admin login: %s", hashlib.sha256(username.encode()).hexdigest()[:8])
         redirect("/admin")
 
+    except LDAPExceptionError as e:
+        LOG.error("LDAP error during admin login: %s", e)
+        return template(
+            "login",
+            csrf_token=_get_csrf_cookie(),
+            username=username,
+            alerts=[("error", "LDAP error: " + bottle.html_escape(str(e)))],
+        )
     except Error as e:
         LOG.warning(
             "Failed admin login for user hash %s: %s",

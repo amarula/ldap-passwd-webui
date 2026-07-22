@@ -21,6 +21,21 @@ min_length = 8
 #require_digit     = true
 #require_special   = true
 
+# Admin panel — allows authenticated LDAP users who are members of the
+# configured admin group to create users, create groups, and manage
+# group memberships.
+#[admin]
+# DN of the group whose members are granted admin access.
+#admin_group_dn = cn=admins,ou=Groups,dc=example,dc=org
+
+# Base DN for new groups created via the admin panel.
+# Defaults to the same base as the first LDAP section.
+#group_base_dn = ou=Groups,dc=example,dc=org
+
+# Which LDAP section to use for admin authentication and operations.
+# Defaults to the first [ldap] / [ldap:*] section.
+#ldap_section = ldap:0
+
 [ldap:0]
 host = localhost
 port = 636
@@ -52,21 +67,6 @@ search_filter = uid={uid}
 #use_ssl = true
 #base = ou=People,dc=example,dc=org
 #search_filter = uid={uid}
-
-# Admin panel — allows authenticated LDAP users who are members of the
-# configured admin group to create users, create groups, and manage
-# group memberships.
-#[admin]
-# DN of the group whose members are granted admin access.
-#admin_group_dn = cn=admins,ou=Groups,dc=example,dc=org
-
-# Base DN for new groups created via the admin panel.
-# Defaults to the same base as the first LDAP section.
-#group_base_dn = ou=Groups,dc=example,dc=org
-
-# Which LDAP section to use for admin authentication and operations.
-# Defaults to the first [ldap] / [ldap:*] section.
-#ldap_section = ldap:0
 
 [server]
 server = auto
