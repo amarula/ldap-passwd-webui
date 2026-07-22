@@ -210,7 +210,7 @@
                   </button>
                 </div>
                 <div class="md-groups-list" id="groups-list">
-                  <p class="md-groups__empty">Click Refresh and enter your admin password to load groups.</p>
+                  <p class="md-groups__empty">Loading groups&hellip;</p>
                 </div>
                 <div class="md-groups-detail" id="group-detail" style="display:none">
                   <h4 class="md-groups__heading" id="detail-group-name"></h4>
@@ -343,8 +343,20 @@
         this.classList.add('md-tab--active');
         var panel = document.getElementById(target);
         if (panel) panel.classList.add('md-tab-panel--active');
+
+        // Preload groups when switching to Create User or Groups tabs.
+        if (target === 'tab-create-user') loadCreateUserGroups();
+        if (target === 'tab-groups') loadGroupsTab();
       });
     });
+
+    // ── Load groups tab content (debounced) ──────────────────────────
+    var groupsTabLoaded = false;
+    function loadGroupsTab() {
+      if (groupsTabLoaded) return;
+      groupsTabLoaded = true;
+      refreshGroupsForTab();
+    }
 
     // ── Password visibility toggle ──────────────────────────────────────
     document.querySelectorAll('.md-visibility-toggle').forEach(function (btn) {
@@ -415,29 +427,43 @@
     }
 
     // ══════════════════════════════════════════════════════════════════
-    // CREATE USER TAB — group checkboxes
+    // CREATE USER TAB — group checkboxes (preloaded)
     // ══════════════════════════════════════════════════════════════════
 
-    document.getElementById('btn-load-groups').addEventListener('click', function () {
+    var createUserGroupsLoaded = false;
+
+    function renderCreateUserGroups(groups) {
+      var container = document.getElementById('create-user-groups');
+      if (!groups.length) {
+        container.innerHTML = '<p class="md-groups__empty">No groups available.</p>';
+        return;
+      }
+      var html = '';
+      groups.forEach(function (g) {
+        html += '<label class="md-checkbox">';
+        html += '<input type="checkbox" name="create-user-group" value="' + esc(g.dn) + '">';
+        html += '<span class="md-checkbox__label">' + esc(g.cn) + '</span>';
+        html += '<span class="md-checkbox__dn">' + esc(g.dn) + '</span>';
+        html += '</label>';
+      });
+      container.innerHTML = html;
+      createUserGroupsLoaded = true;
+    }
+
+    function loadCreateUserGroups() {
+      if (createUserGroupsLoaded) return;
       fetchGroups().then(function (groups) {
-        var container = document.getElementById('create-user-groups');
-        if (!groups.length) {
-          container.innerHTML = '<p class="md-groups__empty">No groups available.</p>';
-          return;
-        }
-        var html = '';
-        groups.forEach(function (g) {
-          html += '<label class="md-checkbox">';
-          html += '<input type="checkbox" name="create-user-group" value="' + esc(g.dn) + '">';
-          html += '<span class="md-checkbox__label">' + esc(g.cn) + '</span>';
-          html += '<span class="md-checkbox__dn">' + esc(g.dn) + '</span>';
-          html += '</label>';
-        });
-        container.innerHTML = html;
+        renderCreateUserGroups(groups);
       }).catch(function (err) {
         document.getElementById('create-user-groups').innerHTML =
           '<p class="md-groups__error">' + esc(err.message || 'Error') + '</p>';
       });
+    }
+
+    // Refresh button as fallback.
+    document.getElementById('btn-load-groups').addEventListener('click', function () {
+      createUserGroupsLoaded = false;
+      loadCreateUserGroups();
     });
 
     // Collect selected group DNs before form submit
@@ -522,6 +548,12 @@
           '<p class="md-groups__error">' + esc(err.message || 'Error') + '</p>';
       });
     });
+
+    // ══════════════════════════════════════════════════════════════════
+    // ── Preload groups for the active tab on page load ──────────────
+    // ══════════════════════════════════════════════════════════════════
+    loadCreateUserGroups();
+    loadGroupsTab();
 
     // ══════════════════════════════════════════════════════════════════
     // Snackbar
