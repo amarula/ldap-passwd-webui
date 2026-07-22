@@ -188,11 +188,12 @@ def _check_admin_group(user_dn: str) -> bool:
                 group_dn,
                 "(objectClass=*)",
                 SUBTREE,
-                attributes=["member"],
+                attributes=["member", "uniqueMember"],
             )
             if not c.response:
                 return False
-            members = c.response[0].get("attributes", {}).get("member", [])
+            attrs = c.response[0].get("attributes", {})
+            members = attrs.get("member", []) + attrs.get("uniqueMember", [])
             user_lower = user_dn.lower()
             return any(m.lower() == user_lower for m in members)
     except Exception:
