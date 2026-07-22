@@ -81,7 +81,7 @@
                      id="new-password"
                      name="new-password"
                      type="password"
-                     minlength="8"
+                     minlength="{{ password_policy['min_length'] }}"
                      required
                      autocomplete="new-password"
                      placeholder=" ">
@@ -104,10 +104,10 @@
               <span class="md-strength-meter__label" id="strength-label"></span>
             </div>
 
-            <!-- Password requirements hint -->
+            <!-- Password requirements hint (dynamic from config) -->
             <div class="md-helper-text">
               <span class="material-symbols-outlined md-helper-text__icon">info</span>
-              <span>At least 8 characters with uppercase, lowercase, digit, and special character</span>
+              <span id="policy-text">{{! password_policy['description'] }}</span>
             </div>
 
             <!-- Confirm new password -->
@@ -117,7 +117,7 @@
                      id="confirm-password"
                      name="confirm-password"
                      type="password"
-                     minlength="8"
+                     minlength="{{ password_policy['min_length'] }}"
                      required
                      autocomplete="new-password"
                      placeholder=" ">
@@ -158,6 +158,15 @@
   (function () {
     'use strict';
 
+    // ── Password policy from configuration ──────────────────────────────
+    var POLICY = {
+      minLength: {{ int(password_policy['min_length']) }},
+      requireUppercase: {{ 'true' if password_policy.getboolean('require_uppercase', False) else 'false' }},
+      requireLowercase: {{ 'true' if password_policy.getboolean('require_lowercase', False) else 'false' }},
+      requireDigit:     {{ 'true' if password_policy.getboolean('require_digit', False) else 'false' }},
+      requireSpecial:   {{ 'true' if password_policy.getboolean('require_special', False) else 'false' }}
+    };
+
     // ── Password visibility toggle ──────────────────────────────────────
     document.querySelectorAll('.md-visibility-toggle').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -183,13 +192,33 @@
     var STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'];
     var STRENGTH_COLORS = ['', 'var(--md-error)', 'var(--md-warning)', 'var(--md-info)', 'var(--md-success)'];
 
+    // Count how many checks are enabled (0–5).
+    var checksEnabled = 0;
+    if (POLICY.minLength > 0) checksEnabled++;
+    if (POLICY.requireUppercase || POLICY.requireLowercase) checksEnabled++;
+    if (POLICY.requireDigit) checksEnabled++;
+    if (POLICY.requireSpecial) checksEnabled++;
+    // Always count length as one check, and reward extra length.
+    checksEnabled = Math.max(1, checksEnabled);
+
     function calcStrength(pw) {
       var score = 0;
-      if (pw.length >= 8) score++;
-      if (pw.length >= 12) score++;
-      if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-      if (/[0-9]/.test(pw)) score++;
-      if (/[^A-Za-z0-9]/.test(pw)) score++;
+      if (pw.length >= POLICY.minLength) score++;
+      if (pw.length >= (POLICY.minLength + 4)) score++;
+
+      // Award score for each enabled requirement that is satisfied.
+      var reqsSatisfied = 0, reqsTotal = 0;
+      if (POLICY.requireUppercase)  { reqsTotal++; if (/[A-Z]/.test(pw)) reqsSatisfied++; }
+      if (POLICY.requireLowercase)  { reqsTotal++; if (/[a-z]/.test(pw)) reqsSatisfied++; }
+      if (POLICY.requireDigit)      { reqsTotal++; if (/[0-9]/.test(pw)) reqsSatisfied++; }
+      if (POLICY.requireSpecial)    { reqsTotal++; if (/[^A-Za-z0-9]/.test(pw)) reqsSatisfied++; }
+
+      if (reqsTotal > 0 && reqsSatisfied >= reqsTotal) score++;
+      // Bonus for mixed case even if not required (good practice).
+      if (!POLICY.requireUppercase && /[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+      if (!POLICY.requireDigit && /[0-9]/.test(pw)) score++;
+      if (!POLICY.requireSpecial && /[^A-Za-z0-9]/.test(pw)) score++;
+
       return Math.min(4, score);
     }
 
@@ -201,7 +230,6 @@
       strengthLabel.style.color = STRENGTH_COLORS[s];
       strengthFill.setAttribute('aria-valuenow', s);
 
-      // Update match indicator
       checkMatch();
     });
 
@@ -240,7 +268,6 @@
         snackbar.className = 'md-snackbar md-snackbar--success md-snackbar--show';
       }
 
-      // Auto-dismiss after 6 seconds
       setTimeout(function () {
         snackbar.classList.remove('md-snackbar--show');
       }, 6000);

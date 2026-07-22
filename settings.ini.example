@@ -1,6 +1,18 @@
 [html]
 page_title = Change your password on example.org
 
+# Password policy — configure to match your LDAP server's ppolicy.
+# By default only a minimum length is required, which matches the
+# defaults of Gerrit, Jenkins, and Gitea.
+[password]
+min_length = 8
+
+# Uncomment to enforce character-class requirements:
+#require_uppercase = true
+#require_lowercase = true
+#require_digit     = true
+#require_special   = true
+
 [ldap:0]
 host = localhost
 port = 636

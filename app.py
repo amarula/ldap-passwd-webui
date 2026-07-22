@@ -210,20 +210,27 @@ def post_index():
     if new_pass != confirm_pass:
         return error("Password doesn't match the confirmation!")
 
-    if len(new_pass) < 8:
-        return error("Password must be at least 8 characters long!")
+    pwd_policy = CONF["password"]
+    min_len = pwd_policy.getint("min_length", 8)
 
-    # --- Password complexity ------------------------------------------------
-    if not re.search(r"[A-Z]", new_pass):
-        return error("Password must contain at least one uppercase letter!")
-    if not re.search(r"[a-z]", new_pass):
-        return error("Password must contain at least one lowercase letter!")
-    if not re.search(r"[0-9]", new_pass):
-        return error("Password must contain at least one digit!")
-    if not re.search(r"[^A-Za-z0-9]", new_pass):
-        return error(
-            "Password must contain at least one special character (!@#$%^&* etc.)!"
-        )
+    if len(new_pass) < min_len:
+        return error(f"Password must be at least {min_len} characters long!")
+
+    # --- Password complexity (configurable per tools like Gerrit/ Jenkins/Gitea) -
+    if pwd_policy.getboolean("require_uppercase", False):
+        if not re.search(r"[A-Z]", new_pass):
+            return error("Password must contain at least one uppercase letter!")
+    if pwd_policy.getboolean("require_lowercase", False):
+        if not re.search(r"[a-z]", new_pass):
+            return error("Password must contain at least one lowercase letter!")
+    if pwd_policy.getboolean("require_digit", False):
+        if not re.search(r"[0-9]", new_pass):
+            return error("Password must contain at least one digit!")
+    if pwd_policy.getboolean("require_special", False):
+        if not re.search(r"[^A-Za-z0-9]", new_pass):
+            return error(
+                "Password must contain at least one special character (!@#$%^&* etc.)!"
+            )
 
     # --- Perform password change --------------------------------------------
     try:
@@ -258,6 +265,9 @@ def serve_static(filename):
 
 
 def index_tpl(**kwargs):
+    # Merge password policy into template defaults so the helper text
+    # and client-side JS can reflect the configured policy.
+    kwargs.setdefault("password_policy", CONF["password"])
     return template("index", **kwargs)
 
 
@@ -402,6 +412,24 @@ LOG.setLevel(logging.INFO)
 LOG.info("Starting ldap-passwd-webui %s", VERSION)
 
 CONF = read_config()
+
+# Build a human-readable password policy description for the UI.
+_pwd = CONF["password"]
+_parts = ["At least " + _pwd.get("min_length", "8") + " characters"]
+if _pwd.getboolean("require_uppercase", False):
+    _parts.append("one uppercase letter")
+if _pwd.getboolean("require_lowercase", False):
+    _parts.append("one lowercase letter")
+if _pwd.getboolean("require_digit", False):
+    _parts.append("one digit")
+if _pwd.getboolean("require_special", False):
+    _parts.append("one special character")
+if len(_parts) == 1:
+    _pwd["description"] = _parts[0]
+elif len(_parts) == 2:
+    _pwd["description"] = _parts[0] + " with " + _parts[1]
+else:
+    _pwd["description"] = _parts[0] + " with " + ", ".join(_parts[1:-1]) + ", and " + _parts[-1]
 
 bottle.TEMPLATE_PATH = [BASE_DIR]
 
