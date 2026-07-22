@@ -102,7 +102,6 @@
       }
     });
 
-    % alerts = get('alerts', [])
     % if alerts:
     (function () {
       var type = '{{ alerts[0][0] }}';

@@ -41,6 +41,7 @@ from ldap3.core.exceptions import (
     LDAPConstraintViolationResult,
     LDAPExceptionError,
     LDAPInvalidCredentialsResult,
+    LDAPOperationResult,
     LDAPSocketOpenError,
     LDAPUserNameIsMandatoryError,
 )
@@ -409,6 +410,17 @@ def post_login():
         LOG.info("Admin login: %s", hashlib.sha256(username.encode()).hexdigest()[:8])
         redirect("/admin")
 
+    except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
+        LOG.warning(
+            "Failed admin login for user hash %s (invalid credentials)",
+            hashlib.sha256(username.encode()).hexdigest()[:8],
+        )
+        return template(
+            "login",
+            csrf_token=_get_csrf_cookie(),
+            username=username,
+            alerts=[("error", "Username or password is incorrect!")],
+        )
     except LDAPExceptionError as e:
         LOG.error("LDAP error during admin login: %s", e)
         return template(
@@ -515,7 +527,7 @@ def post_admin_change_password():
             if not user_dn:
                 return error(f"User '{target_user}' not found.")
             c.extend.standard.modify_password(user_dn, None, new_pass)
-    except (LDAPBindError, LDAPInvalidCredentialsResult):
+    except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
         return error("Your admin password is incorrect!")
     except Error as e:
         return error(str(e))
@@ -600,7 +612,7 @@ def post_admin_create_user():
                     result.get("description", "Failed to create user.")
                 )
 
-    except (LDAPBindError, LDAPInvalidCredentialsResult):
+    except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
         return error("Your admin password is incorrect!")
     except Error as e:
         LOG.error("Create user failed: %s", e)
@@ -677,7 +689,7 @@ def post_admin_create_group():
                     result.get("description", "Failed to create group.")
                 )
 
-    except (LDAPBindError, LDAPInvalidCredentialsResult):
+    except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
         return error("Your admin password is incorrect!")
     except Error as e:
         LOG.error("Create group failed: %s", e)
@@ -754,7 +766,7 @@ def post_admin_modify_group():
                     c.result.get("description", "Failed to modify group membership.")
                 )
 
-    except (LDAPBindError, LDAPInvalidCredentialsResult):
+    except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
         return error("Your admin password is incorrect!")
     except Error as e:
         LOG.error("Group modify failed: %s", e)
@@ -819,7 +831,7 @@ def get_admin_groups():
         response.content_type = "application/json"
         return json.dumps(groups)
 
-    except (LDAPBindError, LDAPInvalidCredentialsResult):
+    except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
         response.status = 401
         return {"error": "Admin password incorrect"}
     except Error as e:
@@ -1009,6 +1021,7 @@ bottle.TEMPLATE_PATH = [BASE_DIR]
 # Set default attributes to pass into templates.
 SimpleTemplate.defaults = dict(CONF["html"])
 SimpleTemplate.defaults["url"] = bottle.url
+SimpleTemplate.defaults["alerts"] = []
 
 if __name__ == "__main__":
     bottle.run(**CONF["server"])
