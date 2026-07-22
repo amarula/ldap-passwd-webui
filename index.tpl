@@ -25,7 +25,7 @@
     <!-- App bar -->
     <header class="md-top-app-bar">
       <div class="md-top-app-bar__row">
-        <span class="material-symbols-outlined md-top-app-bar__icon">lock</span>
+        <span class="material-symbols-outlined md-top-app-bar__icon">{{ get('page_icon', 'lock') }}</span>
         <span class="md-top-app-bar__title">{{ page_title }}</span>
       </div>
     </header>

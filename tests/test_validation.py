@@ -58,7 +58,7 @@ class TestConfigurablePolicy:
             require_digit="true",
             require_special="true",
         )
-        from io import BytesIO
+        from io import BytesIO, StringIO
 
         # Helper to make WSGI calls against the freshly loaded app.
         def wsgi(method, path, body="", cookie=""):
@@ -73,7 +73,7 @@ class TestConfigurablePolicy:
                 "wsgi.version": (1, 0),
                 "wsgi.url_scheme": "http",
                 "wsgi.input": BytesIO(body_bytes),
-                "wsgi.errors": BytesIO(),
+                "wsgi.errors": StringIO(),
                 "CONTENT_LENGTH": str(len(body_bytes)),
                 "CONTENT_TYPE": "application/x-www-form-urlencoded",
             }
@@ -160,7 +160,7 @@ class TestPolicyDescription:
     def test_policy_description(self, load_app_with, password_opts, expected_text):
         """Helper text reflects the configured policy."""
         import re
-        from io import BytesIO
+        from io import BytesIO, StringIO
 
         app_mod = load_app_with(**password_opts)
 
@@ -174,7 +174,7 @@ class TestPolicyDescription:
             "wsgi.version": (1, 0),
             "wsgi.url_scheme": "http",
             "wsgi.input": BytesIO(b""),
-            "wsgi.errors": BytesIO(),
+            "wsgi.errors": StringIO(),
             "CONTENT_LENGTH": "0",
             "CONTENT_TYPE": "application/x-www-form-urlencoded",
         }

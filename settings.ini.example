@@ -1,6 +1,14 @@
 [html]
 page_title = Change your password on example.org
 
+# Material Symbols icon name shown in the app bar (default: lock).
+# Browse icons at https://fonts.google.com/icons
+#page_icon = lock
+
+# Override the theme colour (app bar, focus rings, etc.).
+# You can also set these via CSS custom properties in a <style> block.
+#primary_color = #2e7d32
+
 # Password policy — configure to match your LDAP server's ppolicy.
 # By default only a minimum length is required, which matches the
 # defaults of Gerrit, Jenkins, and Gitea.

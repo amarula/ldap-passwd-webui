@@ -4,7 +4,7 @@ import os
 import sys
 import tempfile
 from configparser import ConfigParser
-from io import BytesIO
+from io import BytesIO, StringIO
 
 import pytest
 
@@ -113,7 +113,7 @@ def client(app):
             "wsgi.version": (1, 0),
             "wsgi.url_scheme": "http",
             "wsgi.input": BytesIO(body_bytes),
-            "wsgi.errors": BytesIO(),
+            "wsgi.errors": StringIO(),
             "CONTENT_LENGTH": str(len(body_bytes)),
             "CONTENT_TYPE": "application/x-www-form-urlencoded",
         }

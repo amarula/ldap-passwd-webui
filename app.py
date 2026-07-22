@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import secrets
+import ssl
 import time
 from collections import defaultdict, deque
 from configparser import ConfigParser
@@ -280,10 +281,10 @@ def connect_ldap(conf, **kwargs):
             tls_kwargs["ca_certs_file"] = ca_file
         req_cert = conf.get("tls_req_cert", "demand")
         tls_kwargs["validate"] = {
-            "demand": ldap3.TlsValidateStrategy.DEMAND,
-            "allow": ldap3.TlsValidateStrategy.ALLOW,
-            "never": ldap3.TlsValidateStrategy.NEVER,
-        }.get(req_cert, ldap3.TlsValidateStrategy.DEMAND)
+            "demand": ssl.CERT_REQUIRED,
+            "allow": ssl.CERT_OPTIONAL,
+            "never": ssl.CERT_NONE,
+        }.get(req_cert, ssl.CERT_REQUIRED)
         tls_config = Tls(**tls_kwargs)
 
     server = Server(

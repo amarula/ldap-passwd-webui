@@ -1,70 +1,100 @@
 /* ==========================================================================
    ldap-passwd-webui — Material Design 3
+   ==========================================================================
+   Every colour, spacing, and shape is driven by CSS custom properties.
+   Override any --md-* variable in a <style> block or your own stylesheet
+   to customise the look without editing this file.
+
+   Quick customisation — copy these to your page and tweak:
+   ────────────────────────────────────────────────────────────────────────
+   <style>
+     :root {
+       --md-primary:         #2e7d32;   /* app bar, focus rings, button  */
+       --md-on-primary:      #ffffff;   /* text/icons on primary bg       */
+       --md-surface:         #fdfbff;   /* page and card background       */
+       --md-on-surface:      #1c1b1f;   /* body text                      */
+       --md-outline:         #79747e;   /* text-field border              */
+       --md-error:           #b3261e;   /* error text, match-indicator    */
+       --md-success:         #2e7d32;   /* success match-indicator        */
+     }
+   </style>
    ========================================================================== */
 
 /* ── Design Tokens ─────────────────────────────────────────────────────── */
 
 :root {
-  /* Primary palette (green — security / success) */
-  --md-primary: #2e7d32;
-  --md-on-primary: #ffffff;
-  --md-primary-container: #a5d6a7;
+  /* ── Brand / Primary ───────────────────────────────────────────────── */
+  --md-primary:            #2e7d32;
+  --md-on-primary:         #ffffff;
+  --md-primary-container:  #a5d6a7;
   --md-on-primary-container: #0b1f0d;
 
-  /* Surface */
-  --md-surface: #fdfbff;
-  --md-surface-variant: #e7e0e8;
-  --md-on-surface: #1c1b1f;
+  /* ── Surface ────────────────────────────────────────────────────────── */
+  --md-surface:            #fdfbff;
+  --md-surface-variant:    #e7e0e8;
+  --md-on-surface:         #1c1b1f;
   --md-on-surface-variant: #49454f;
 
-  /* Outline */
-  --md-outline: #79747e;
-  --md-outline-variant: #cac4d0;
+  /* ── Outline ────────────────────────────────────────────────────────── */
+  --md-outline:            #79747e;
+  --md-outline-variant:    #cac4d0;
 
-  /* Status */
-  --md-error: #b3261e;
-  --md-on-error: #ffffff;
-  --md-error-container: #f9dedc;
+  /* ── Status colours ─────────────────────────────────────────────────── */
+  --md-error:              #b3261e;
+  --md-on-error:           #ffffff;
+  --md-error-container:    #f9dedc;
   --md-on-error-container: #410e0b;
 
-  --md-success: #2e7d32;
-  --md-on-success: #ffffff;
-  --md-success-container: #a5d6a7;
+  --md-success:            #2e7d32;
+  --md-on-success:         #ffffff;
+  --md-success-container:  #a5d6a7;
 
-  --md-warning: #ed6c02;
-  --md-info: #0288d1;
+  --md-warning:            #ed6c02;
+  --md-info:               #0288d1;
 
-  /* Elevation */
+  /* ── Icon hover (inside text fields) ────────────────────────────────── */
+  --md-field-icon-hover:   rgba(73, 69, 79, 0.08);
+
+  /* ── Snackbar ───────────────────────────────────────────────────────── */
+  --md-snackbar-bg:          #313033;
+  --md-snackbar-text:        #f4eff4;
+  --md-snackbar-success-bg:  #1b5e20;
+  --md-snackbar-success-text:#ffffff;
+  --md-snackbar-error-bg:    #b3261e;
+  --md-snackbar-error-text:  #ffffff;
+  --md-snackbar-dismiss-hover: rgba(255, 255, 255, 0.12);
+
+  /* ── Elevation ──────────────────────────────────────────────────────── */
   --md-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
   --md-elevation-2: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
   --md-elevation-3: 0 1px 3px 0 rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15);
 
-  /* Typography */
+  /* ── Typography ─────────────────────────────────────────────────────── */
   --md-font: 'Roboto', system-ui, -apple-system, sans-serif;
-  --md-typescale-display: 400 2.25rem/2.75rem var(--md-font);
-  --md-typescale-headline: 400 1.75rem/2.25rem var(--md-font);
-  --md-typescale-title: 500 1.25rem/1.75rem var(--md-font);
-  --md-typescale-body: 400 1rem/1.5rem var(--md-font);
-  --md-typescale-label: 500 0.875rem/1.25rem var(--md-font);
-  --md-typescale-small: 400 0.75rem/1rem var(--md-font);
+  --md-typescale-display:   400 2.25rem/2.75rem var(--md-font);
+  --md-typescale-headline:  400 1.75rem/2.25rem var(--md-font);
+  --md-typescale-title:     500 1.25rem/1.75rem var(--md-font);
+  --md-typescale-body:      400 1rem/1.5rem var(--md-font);
+  --md-typescale-label:     500 0.875rem/1.25rem var(--md-font);
+  --md-typescale-small:     400 0.75rem/1rem var(--md-font);
 
-  /* Spacing (8dp grid) */
+  /* ── Spacing (8 dp grid) ────────────────────────────────────────────── */
   --md-spacing-1: 0.5rem;
   --md-spacing-2: 1rem;
   --md-spacing-3: 1.5rem;
   --md-spacing-4: 2rem;
 
-  /* Shape */
-  --md-shape-sm: 0.5rem;
-  --md-shape-md: 0.75rem;
-  --md-shape-lg: 1rem;
+  /* ── Shape ──────────────────────────────────────────────────────────── */
+  --md-shape-sm:   0.5rem;
+  --md-shape-md:   0.75rem;
+  --md-shape-lg:   1rem;
   --md-shape-full: 9999px;
 
-  /* Motion */
-  --md-duration-short: 200ms;
+  /* ── Motion ─────────────────────────────────────────────────────────── */
+  --md-duration-short:  200ms;
   --md-duration-medium: 300ms;
-  --md-duration-long: 500ms;
-  --md-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-duration-long:   500ms;
+  --md-easing-standard:   cubic-bezier(0.2, 0, 0, 1);
   --md-easing-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
 }
 
@@ -72,26 +102,36 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --md-primary: #81c784;
-    --md-on-primary: #003910;
-    --md-primary-container: #005319;
+    --md-primary:            #81c784;
+    --md-on-primary:         #003910;
+    --md-primary-container:  #005319;
     --md-on-primary-container: #a5d6a7;
 
-    --md-surface: #1c1b1f;
-    --md-surface-variant: #2b2930;
-    --md-on-surface: #e6e1e5;
+    --md-surface:            #1c1b1f;
+    --md-surface-variant:    #2b2930;
+    --md-on-surface:         #e6e1e5;
     --md-on-surface-variant: #cac4d0;
 
-    --md-outline: #938f99;
-    --md-outline-variant: #49454f;
+    --md-outline:            #938f99;
+    --md-outline-variant:    #49454f;
 
-    --md-error: #f2b8b5;
-    --md-on-error: #601410;
-    --md-error-container: #8c1d18;
+    --md-error:              #f2b8b5;
+    --md-on-error:           #601410;
+    --md-error-container:    #8c1d18;
     --md-on-error-container: #f9dedc;
 
-    --md-success: #81c784;
-    --md-success-container: #005319;
+    --md-success:            #81c784;
+    --md-success-container:  #005319;
+
+    --md-field-icon-hover:   rgba(202, 196, 208, 0.12);
+
+    --md-snackbar-bg:          #e6e1e5;
+    --md-snackbar-text:        #1c1b1f;
+    --md-snackbar-success-bg:  #81c784;
+    --md-snackbar-success-text:#003910;
+    --md-snackbar-error-bg:    #f2b8b5;
+    --md-snackbar-error-text:  #601410;
+    --md-snackbar-dismiss-hover: rgba(0, 0, 0, 0.12);
 
     --md-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
     --md-elevation-2: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
@@ -194,9 +234,6 @@ body {
 /* ── Material Text Field (outlined variant) ────────────────────────────── */
 
 .md-field {
-  --_field-bg: var(--md-surface);
-  --_field-outline: var(--md-outline);
-  --_field-label: var(--md-on-surface-variant);
   --_field-leading-space: 0.75rem;  /* padding from outline to leading icon */
 
   position: relative;
@@ -208,7 +245,6 @@ body {
   min-height: 3.5rem;
 }
 
-/* Click anywhere in the field to focus the input */
 .md-field:not(:has(.md-field__input:focus)):hover {
   cursor: text;
 }
@@ -236,7 +272,7 @@ body {
   color: transparent;
 }
 
-/* Outline (drawn via pseudo-element on the field) */
+/* Outline (drawn via a positioned span so we can animate it) */
 .md-field__outline {
   position: absolute;
   inset: 0;
@@ -264,7 +300,7 @@ body {
   transform-origin: left center;
 }
 
-/* Floating label — when input has value, is focused, or placeholder is shown */
+/* Floating label — when input has value or is focused */
 .md-field__input:focus ~ .md-field__label,
 .md-field__input:not(:placeholder-shown) ~ .md-field__label {
   transform: translateY(-0.85rem) scale(0.75);
@@ -286,7 +322,7 @@ body {
 }
 
 .md-field__trailing-icon:hover {
-  background-color: rgba(73, 69, 79, 0.08);
+  background-color: var(--md-field-icon-hover);
 }
 
 .md-field__trailing-icon .material-symbols-outlined {
@@ -478,8 +514,8 @@ body {
   max-width: 36rem;
   padding: var(--md-spacing-1) var(--md-spacing-2);
   border-radius: var(--md-shape-sm);
-  background-color: #313033;
-  color: #f4eff4;
+  background-color: var(--md-snackbar-bg);
+  color: var(--md-snackbar-text);
   box-shadow: var(--md-elevation-3);
   z-index: 100;
   transition: transform var(--md-duration-medium) var(--md-easing-emphasized);
@@ -490,13 +526,13 @@ body {
 }
 
 .md-snackbar--success {
-  background-color: #1b5e20;
-  color: #ffffff;
+  background-color: var(--md-snackbar-success-bg);
+  color: var(--md-snackbar-success-text);
 }
 
 .md-snackbar--error {
-  background-color: #b3261e;
-  color: #ffffff;
+  background-color: var(--md-snackbar-error-bg);
+  color: var(--md-snackbar-error-text);
 }
 
 .md-snackbar__icon {
@@ -525,7 +561,7 @@ body {
 
 .md-snackbar__dismiss:hover {
   opacity: 1;
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: var(--md-snackbar-dismiss-hover);
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
@@ -581,7 +617,7 @@ body {
   outline: none;
 }
 
-/* Trailing icon buttons inside fields also don't need a focus ring */
+/* Trailing icon buttons use an inset outline so it stays inside the field */
 .md-field__trailing-icon:focus-visible {
   outline: 2px solid var(--md-primary);
   outline-offset: -2px;
