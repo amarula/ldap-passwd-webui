@@ -39,7 +39,7 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
             <!-- Username -->
-            <label class="md-field">
+            <div class="md-field">
               <span class="md-field__icon material-symbols-outlined">person</span>
               <input class="md-field__input"
                      id="username"
@@ -49,13 +49,14 @@
                      required
                      autofocus
                      autocomplete="username"
-                     placeholder=" ">
+                     placeholder=" "
+                     aria-label="Username">
               <span class="md-field__label">Username</span>
               <span class="md-field__outline"></span>
-            </label>
+            </div>
 
             <!-- Old password -->
-            <label class="md-field">
+            <div class="md-field">
               <span class="md-field__icon material-symbols-outlined">lock_open</span>
               <input class="md-field__input md-field__input--password"
                      id="old-password"
@@ -63,19 +64,19 @@
                      type="password"
                      required
                      autocomplete="current-password"
-                     placeholder=" ">
+                     placeholder=" "
+                     aria-label="Current password">
               <span class="md-field__label">Current password</span>
               <span class="md-field__outline"></span>
               <button type="button"
                       class="md-field__trailing-icon md-visibility-toggle"
-                      tabindex="-1"
                       aria-label="Show password">
                 <span class="material-symbols-outlined">visibility</span>
               </button>
-            </label>
+            </div>
 
             <!-- New password -->
-            <label class="md-field">
+            <div class="md-field">
               <span class="md-field__icon material-symbols-outlined">lock</span>
               <input class="md-field__input md-field__input--password"
                      id="new-password"
@@ -84,16 +85,16 @@
                      minlength="{{ password_policy['min_length'] }}"
                      required
                      autocomplete="new-password"
-                     placeholder=" ">
+                     placeholder=" "
+                     aria-label="New password">
               <span class="md-field__label">New password</span>
               <span class="md-field__outline"></span>
               <button type="button"
                       class="md-field__trailing-icon md-visibility-toggle"
-                      tabindex="-1"
                       aria-label="Show password">
                 <span class="material-symbols-outlined">visibility</span>
               </button>
-            </label>
+            </div>
 
             <!-- Password strength meter -->
             <div class="md-strength-meter" id="strength-meter" aria-live="polite">
@@ -111,7 +112,7 @@
             </div>
 
             <!-- Confirm new password -->
-            <label class="md-field">
+            <div class="md-field">
               <span class="md-field__icon material-symbols-outlined">lock_reset</span>
               <input class="md-field__input md-field__input--password"
                      id="confirm-password"
@@ -120,16 +121,16 @@
                      minlength="{{ password_policy['min_length'] }}"
                      required
                      autocomplete="new-password"
-                     placeholder=" ">
+                     placeholder=" "
+                     aria-label="Confirm new password">
               <span class="md-field__label">Confirm new password</span>
               <span class="md-field__outline"></span>
               <button type="button"
                       class="md-field__trailing-icon md-visibility-toggle"
-                      tabindex="-1"
                       aria-label="Show password">
                 <span class="material-symbols-outlined">visibility</span>
               </button>
-            </label>
+            </div>
 
             <!-- Password match indicator -->
             <div class="md-match-text" id="match-text" aria-live="polite"></div>
@@ -167,19 +168,33 @@
       requireSpecial:   {{ 'true' if password_policy.getboolean('require_special', False) else 'false' }}
     };
 
-    // ── Password visibility toggle ──────────────────────────────────────
-    document.querySelectorAll('.md-visibility-toggle').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var input = this.parentElement.querySelector('.md-field__input');
-        var icon = this.querySelector('.material-symbols-outlined');
+    // ── Form-level click delegation (one handler for everything) ──────
+    document.getElementById('password-form').addEventListener('click', function (e) {
+      // --- Password visibility toggle ---
+      var toggleBtn = e.target.closest('.md-visibility-toggle');
+      if (toggleBtn) {
+        e.preventDefault();
+        var field = toggleBtn.closest('.md-field');
+        var input = field.querySelector('.md-field__input');
+        var icon = toggleBtn.querySelector('.material-symbols-outlined');
         if (input.type === 'password') {
           input.type = 'text';
           icon.textContent = 'visibility_off';
+          toggleBtn.setAttribute('aria-label', 'Hide password');
         } else {
           input.type = 'password';
           icon.textContent = 'visibility';
+          toggleBtn.setAttribute('aria-label', 'Show password');
         }
-      });
+        return;
+      }
+
+      // --- Field click to focus input ---
+      var field = e.target.closest('.md-field');
+      if (field && !e.target.closest('button, a')) {
+        var input = field.querySelector('.md-field__input');
+        if (input) input.focus();
+      }
     });
 
     // ── Password strength meter ─────────────────────────────────────────
@@ -192,21 +207,11 @@
     var STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'];
     var STRENGTH_COLORS = ['', 'var(--md-error)', 'var(--md-warning)', 'var(--md-info)', 'var(--md-success)'];
 
-    // Count how many checks are enabled (0–5).
-    var checksEnabled = 0;
-    if (POLICY.minLength > 0) checksEnabled++;
-    if (POLICY.requireUppercase || POLICY.requireLowercase) checksEnabled++;
-    if (POLICY.requireDigit) checksEnabled++;
-    if (POLICY.requireSpecial) checksEnabled++;
-    // Always count length as one check, and reward extra length.
-    checksEnabled = Math.max(1, checksEnabled);
-
     function calcStrength(pw) {
       var score = 0;
       if (pw.length >= POLICY.minLength) score++;
       if (pw.length >= (POLICY.minLength + 4)) score++;
 
-      // Award score for each enabled requirement that is satisfied.
       var reqsSatisfied = 0, reqsTotal = 0;
       if (POLICY.requireUppercase)  { reqsTotal++; if (/[A-Z]/.test(pw)) reqsSatisfied++; }
       if (POLICY.requireLowercase)  { reqsTotal++; if (/[a-z]/.test(pw)) reqsSatisfied++; }
@@ -214,7 +219,6 @@
       if (POLICY.requireSpecial)    { reqsTotal++; if (/[^A-Za-z0-9]/.test(pw)) reqsSatisfied++; }
 
       if (reqsTotal > 0 && reqsSatisfied >= reqsTotal) score++;
-      // Bonus for mixed case even if not required (good practice).
       if (!POLICY.requireUppercase && /[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
       if (!POLICY.requireDigit && /[0-9]/.test(pw)) score++;
       if (!POLICY.requireSpecial && /[^A-Za-z0-9]/.test(pw)) score++;

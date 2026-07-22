@@ -206,6 +206,10 @@ body {
   padding-right: 0.25rem;
   margin-bottom: var(--md-spacing-2);
   min-height: 3.5rem;
+}
+
+/* Click anywhere in the field to focus the input */
+.md-field:not(:has(.md-field__input:focus)):hover {
   cursor: text;
 }
 
@@ -268,8 +272,6 @@ body {
 
 /* Trailing icon button */
 .md-field__trailing-icon {
-  position: relative;
-  z-index: 2;
   background: none;
   border: none;
   color: var(--md-on-surface-variant);
