@@ -165,22 +165,36 @@ def _get_admin_ldap_section() -> str:
     raise Error("No LDAP section configured.")
 
 
-def _check_admin_group(conn: Connection, user_dn: str) -> bool:
-    """Return True if *user_dn* is a member of the admin group."""
+def _check_admin_group(user_dn: str) -> bool:
+    """Return True if *user_dn* is a member of the admin group.
+
+    Opens its own privileged connection so the check works even when the
+    authenticating user lacks read permissions on the admin group entry.
+    """
     if not CONF.has_section("admin"):
         return False
     group_dn = CONF["admin"].get("admin_group_dn", "")
     if not group_dn:
         return False
-    safe_dn = ldap_escape(user_dn)
+    admin_dn = CONF["admin"].get("admin_dn", "")
+    admin_pw = CONF["admin"].get("admin_password", "")
+    if not admin_dn or not admin_pw:
+        return False
+    conf = _ldap_conf()
     try:
-        conn.search(
-            group_dn,
-            "(member=%s)" % safe_dn,
-            SUBTREE,
-            attributes=[],
-        )
-        return len(conn.response) > 0
+        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn, password=admin_pw) as c:
+            c.bind()
+            c.search(
+                group_dn,
+                "(objectClass=*)",
+                SUBTREE,
+                attributes=["member"],
+            )
+            if not c.response:
+                return False
+            members = c.response[0].get("attributes", {}).get("member", [])
+            user_lower = user_dn.lower()
+            return any(m.lower() == user_lower for m in members)
     except Exception:
         return False
 
@@ -400,7 +414,7 @@ def post_login():
         with connect_ldap(conf, authentication=SIMPLE, user=user_dn, password=password) as c:
             c.bind()
             # Check admin group membership.
-            if not _check_admin_group(c, user_dn):
+            if not _check_admin_group(user_dn):
                 raise Error(
                     "Access denied. You are not a member of the admin group."
                 )

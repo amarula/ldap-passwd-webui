@@ -32,6 +32,11 @@ min_length = 8
 # Defaults to the same base as the first LDAP section.
 #group_base_dn = ou=Groups,dc=example,dc=org
 
+# LDAP admin credentials used for group-membership lookups (must have
+# read access to the admin group entry).
+#admin_dn = cn=admin,dc=example,dc=org
+#admin_password = admin123
+
 # Which LDAP section to use for admin authentication and operations.
 # Defaults to the first [ldap] / [ldap:*] section.
 #ldap_section = ldap:0
