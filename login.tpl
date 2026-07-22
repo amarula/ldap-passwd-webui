@@ -8,7 +8,7 @@
   <meta name="theme-color" content="{{ get('primary_color', '#2e7d32') }}">
   <meta name="color-scheme" content="light dark">
 
-  <title>{{ page_title }} — Admin Login</title>
+  <title>Admin Login</title>
 
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
