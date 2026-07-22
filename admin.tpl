@@ -493,7 +493,9 @@
           if (g) {
             var mHtml = '<ul class="md-members-list">';
             (g.members || []).forEach(function (m) {
-              mHtml += '<li>' + esc(m) + '</li>';
+              var name = m.match(/^cn=([^,]+)/);
+              var display = name ? name[1] : m;
+              mHtml += '<li>' + esc(display) + '</li>';
             });
             mHtml += '</ul>';
             membersDiv.innerHTML = mHtml;
