@@ -8,6 +8,17 @@ use_ssl = true
 base = ou=People,dc=example,dc=org
 search_filter = uid={uid}
 
+# TLS certificate verification (only used when use_ssl or use_tls is true)
+# tls_req_cert controls certificate validation:
+#   demand — require valid certificate (default, most secure)
+#   allow  — try to validate, but allow self-signed certs
+#   never  — skip certificate validation (insecure, not recommended)
+#tls_req_cert = demand
+#tls_ca_cert_file = /etc/ssl/certs/ca-certificates.crt
+
+# Connection timeout in seconds (default: 5)
+#connect_timeout = 5
+
 # Uncomment for AD / Samba 4
 #type = ad
 #ad_domain = ad.example.org
@@ -17,6 +28,8 @@ search_filter = uid={uid}
 # If one fails, the previous password changes are reverted.
 #[ldap:1]
 #host = localhost
+#port = 636
+#use_ssl = true
 #base = ou=People,dc=example,dc=org
 #search_filter = uid={uid}
 
