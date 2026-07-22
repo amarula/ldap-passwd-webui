@@ -419,11 +419,19 @@ def post_login():
         conf = _ldap_conf()
         safe_uid = ldap_escape(username)
 
-        # First search for the user's actual DN using the LDAP bind
-        # credentials, since the DN RDN might be cn= not uid=.
+        # First search for the user's actual DN using the admin bind
+        # credentials (from [admin] section), since the user DN RDN may
+        # be cn= not uid=.
+        if CONF.has_section("admin"):
+            admin_dn = CONF["admin"].get("admin_dn", "")
+            admin_pw = CONF["admin"].get("admin_password", "")
+        else:
+            admin_dn = conf.get("username", "")
+            admin_pw = conf.get("password", "")
+
         with connect_ldap(
             conf, authentication=SIMPLE,
-            user=conf.get("username"), password=conf.get("password")
+            user=admin_dn, password=admin_pw
         ) as search_c:
             search_c.bind()
             user_dn = _find_user_dn(conf, search_c, safe_uid)
