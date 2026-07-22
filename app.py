@@ -1123,6 +1123,9 @@ SimpleTemplate.defaults = dict(CONF["html"])
 SimpleTemplate.defaults["url"] = bottle.url
 SimpleTemplate.defaults["request"] = request
 SimpleTemplate.defaults["alerts"] = []
+# base_path for deployments behind a reverse proxy (e.g. /passwd).
+# Set in settings.ini [html] or leave empty for root-path deployment.
+SimpleTemplate.defaults.setdefault("base_path", "")
 
 if __name__ == "__main__":
     bottle.run(**CONF["server"])

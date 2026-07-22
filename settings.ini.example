@@ -1,6 +1,10 @@
 [html]
 page_title = Change your password on example.org
 
+# Base path for deployments behind a reverse proxy (e.g. /passwd).
+# Leave empty for root-path deployments.
+#base_path = /passwd
+
 # Material Symbols icon name shown in the app bar (default: lock).
 # Browse icons at https://fonts.google.com/icons
 #page_icon = lock
