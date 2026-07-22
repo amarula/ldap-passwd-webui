@@ -1,20 +1,32 @@
 = Web UI for changing LDAP password
-Jakub Jirutka <https://github.com/jirutka[@jirutka]>
+Jakub Jirutka <https://github.com/jirutka[@jirutka]>; Michael Trimarchi <https://github.com/panicking[@panicking]>
 //custom
 :proj-name: ldap-passwd-webui
 :gh-name: jirutka/{proj-name}
 :wikip-url: https://en.wikipedia.org/wiki
 :pypi-url: https://pypi.python.org/pypi
 
-The aim of this project is to provide a very simple web form for users to be able to change their password stored in LDAP or Active Directory (Samba 4 AD).
-It’s built with http://bottlepy.org[Bottle], a WSGI micro web-framework for Python.
+The aim of this project is to provide a simple yet secure web form for users
+to change their password stored in LDAP or Active Directory (Samba 4 AD).
+It's built with http://bottlepy.org[Bottle], a WSGI micro web-framework for
+Python, and features a modern Material Design 3 interface.
+
+
+== Features
+
+* Simple, single-page password change form
+* Support for OpenLDAP and Active Directory / Samba 4 AD
+* Atomic multi-LDAP password change with automatic rollback on failure
+* Modern Material Design 3 interface with light and dark theme support
+* Password strength meter with real-time feedback
+* Built-in security hardening (see <<Security>>)
 
 
 == Installation
 
 === Alpine Linux
 
-. Install package *ldap-passwd-webui-waitress* from the Alpine’s community repository:
+. Install package *ldap-passwd-webui-waitress* from the Alpine's community repository:
 +
 [source, sh]
 apk add ldap-passwd-webui-waitress
@@ -44,16 +56,122 @@ Read the next sections to learn how to run it.
 === Requirements
 
 * Python 3.x
-* {pypi-url}/bottle/[bottle]
-* {pypi-url}/ldap3[ldap3] 2.x
+* {pypi-url}/bottle/[bottle] >= 0.13
+* {pypi-url}/ldap3[ldap3] >= 2.0
 
 
 == Configuration
 
 Configuration is read from the file link:settings.ini.example[settings.ini].
-You may change location of the settings file using the environment variable `CONF_FILE`.
+You may change location of the settings file using the environment variable
+`CONF_FILE`.
 
-If you have Active Directory (or Samba 4 AD), then you *must* use encrypted connection (i.e. LDAPS or StartTLS) – AD doesn’t allow changing password via unencrypted connection.
+=== LDAP Connection
+
+Each LDAP server is configured in a `[ldap]` or `[ldap:<name>]` section:
+
+[source, ini]
+----
+[ldap:0]
+host = ldap.example.org
+port = 636
+use_ssl = true
+base = ou=People,dc=example,dc=org
+search_filter = uid={uid}
+----
+
+=== Active Directory
+
+If you have Active Directory (or Samba 4 AD), set `type = ad` and provide the
+AD domain name. You *must* use an encrypted connection (LDAPS or StartTLS) --
+AD doesn't allow changing passwords via unencrypted connection.
+
+[source, ini]
+----
+[ldap:0]
+host = ad.example.org
+port = 636
+use_ssl = true
+base = dc=example,dc=org
+type = ad
+ad_domain = ad.example.org
+search_filter = sAMAccountName={uid}
+----
+
+=== TLS Certificate Verification
+
+When using SSL/TLS connections, you can configure certificate verification:
+
+[source, ini]
+----
+[ldap:0]
+use_ssl = true
+# Controls certificate validation:
+#   demand — require a valid, trusted certificate (default, most secure)
+#   allow  — accept self-signed certificates
+#   never  — skip certificate validation (insecure, not recommended)
+tls_req_cert = demand
+tls_ca_cert_file = /etc/ssl/certs/ca-certificates.crt
+# Connection timeout in seconds (default: 5)
+connect_timeout = 5
+----
+
+=== Multiple LDAP Servers
+
+You may specify multiple LDAP configurations using `[ldap:0]`, `[ldap:1]`,
+etc. The password will be changed in all of them. If any change fails, the
+previous changes are automatically rolled back.
+
+=== Server Configuration
+
+[source, ini]
+----
+[server]
+server = auto
+host = localhost
+port = 8080
+----
+
+=== Page Title
+
+[source, ini]
+----
+[html]
+page_title = Change your password on example.org
+----
+
+
+== Security
+
+This application implements multiple layers of security hardening:
+
+* *LDAP Injection Prevention* — Usernames are escaped per RFC 4515 before
+  being embedded in LDAP search filters.
+* *CSRF Protection* — All form submissions require a cryptographically signed
+  anti-CSRF token stored in a SameSite-strict, HttpOnly cookie.
+* *XSS Prevention* — All user-supplied and LDAP-sourced error messages are
+  HTML-escaped before rendering.
+* *Rate Limiting* — In-memory sliding-window rate limiter restricts password
+  change attempts to 5 per IP and 10 per username per minute.
+* *Security Headers* — Every response includes Content-Security-Policy,
+  Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options,
+  X-XSS-Protection, and Referrer-Policy.
+* *Password Complexity* — Server-side enforcement requires at least 8
+  characters with uppercase, lowercase, digit, and special character.
+* *Log Sanitization* — Usernames are never logged in plain text; only a
+  SHA-256 prefix hash is recorded.
+* *TLS Verification* — LDAPS/TLS connections validate server certificates
+  by default (configurable per server).
+
+=== Deployment Recommendations
+
+For production use, always:
+
+1. Run behind a reverse proxy (nginx, Apache) that terminates TLS.
+2. Set the `Secure` flag on cookies by running in non-DEBUG mode (the
+   default).
+3. Place the application behind authentication if exposing to the internet.
+4. Use `tls_req_cert = demand` in production LDAP configurations.
 
 
 == Run it
@@ -61,7 +179,7 @@ If you have Active Directory (or Samba 4 AD), then you *must* use encrypted conn
 There are multiple ways how to run it:
 
 * with the built-in default WSGI server based on https://docs.python.org/3/library/wsgiref.html#module-wsgiref.simple_server[wsgiref],
-* under a {wikip-url}/Web_Server_Gateway_Interface[WSGI] server like https://uwsgi-docs.readthedocs.org[uWSGI], https://docs.pylonsproject.org/projects/waitress[Waitress], http://gunicorn.org[Gunicorn], … (recommended)
+* under a {wikip-url}/Web_Server_Gateway_Interface[WSGI] server like https://uwsgi-docs.readthedocs.org[uWSGI], https://docs.pylonsproject.org/projects/waitress[Waitress], http://gunicorn.org[Gunicorn], ... (recommended)
 * as a {wikip-url}/Common_Gateway_Interface[CGI] script.
 
 === Run with the built-in server
@@ -85,8 +203,8 @@ waitress-serve --listen=*:8080 app:application
 
 === Run with uWSGI and nginx
 
-If you have many micro-apps like this, it’s IMO kinda overkill to run each in a separate uWSGI process, isn’t it?
-It’s not so well known, but uWSGI allows to “mount” multiple application in a single uWSGI process and with a single socket.
+If you have many micro-apps like this, it's IMO kinda overkill to run each in a separate uWSGI process, isn't it?
+It's not so well known, but uWSGI allows to "mount" multiple application in a single uWSGI process and with a single socket.
 
 [source, ini, subs="+attributes"]
 .Sample uWSGI configuration:
@@ -122,12 +240,13 @@ server {
 }
 ----
 
-== Screenshot
 
-image::doc/screenshot.png[]
+== Changelog
+
+See link:CHANGELOG.adoc[CHANGELOG].
 
 
 == License
 
-This project is licensed under http://opensource.org/licenses/MIT/[MIT License].
+This project is licensed under http://opensource.org/licenses/MIT[MIT License].
 For the full text of the license, see the link:LICENSE[LICENSE] file.

@@ -5,6 +5,30 @@
 :tags: {repo-uri}/releases/tag
 
 
+== link:{tags}/v2.2.0[2.2.0] (2026-07-22)
+
+* Add LDAP filter escaping to prevent LDAP injection (RFC 4515).
+* Add CSRF protection via signed SameSite-strict cookies.
+* Add HTML escaping of all error messages to prevent XSS.
+* Add in-memory rate limiting with sliding window (per IP and username).
+* Add security headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options,
+  X-XSS-Protection, Referrer-Policy, X-Permitted-Cross-Domain-Policies.
+* Add server-side password complexity enforcement (uppercase, lowercase,
+  digit, special character).
+* Add TLS certificate verification support for LDAPS connections.
+* Sanitize usernames in log messages (replace with SHA-256 prefix hash).
+* Redesign UI with Material Design 3 (card layout, outlined text fields,
+  floating labels, Material Symbols icons, Roboto typography).
+* Add password strength meter with real-time entropy scoring.
+* Add password visibility toggle on all password fields.
+* Add live password match/mismatch indicator.
+* Add animated Material snackbar for success and error messages.
+* Add automatic dark mode support via prefers-color-scheme.
+* Add prefers-reduced-motion support for accessibility.
+* Improve mobile responsiveness down to 320px width.
+* Update minimum bottle version to 0.13 for security features.
+
+
 == link:{tags}/v2.1.0[2.1.0] (2019-01-09)
 
 * Add support for changing password in multiple LDAPs at once.
