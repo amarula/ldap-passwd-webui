@@ -419,10 +419,19 @@ def post_login():
         conf = _ldap_conf()
         safe_uid = ldap_escape(username)
 
-        # Construct the user DN from the base + uid and try to bind.
-        # This avoids an anonymous search (which many LDAP servers disallow).
-        user_dn = "uid=%s,%s" % (safe_uid, conf["base"])
+        # First search for the user's actual DN using the LDAP bind
+        # credentials, since the DN RDN might be cn= not uid=.
+        with connect_ldap(
+            conf, authentication=SIMPLE,
+            user=conf.get("username"), password=conf.get("password")
+        ) as search_c:
+            search_c.bind()
+            user_dn = _find_user_dn(conf, search_c, safe_uid)
 
+        if not user_dn:
+            raise Error("User not found.")
+
+        # Now try to bind with the user's actual DN and password.
         with connect_ldap(conf, authentication=SIMPLE, user=user_dn, password=password) as c:
             c.bind()
             # Check admin group membership.
