@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#1b5e20">
+  <meta name="theme-color" content="{{ get('primary_color', '#2e7d32') }}">
   <meta name="color-scheme" content="light dark">
 
   <title>{{ page_title }}</title>
@@ -18,6 +18,19 @@
         href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
 
   <link rel="stylesheet" href="{{ url('static', filename='style.css') }}">
+
+  % if get('primary_color'):
+  <style>
+    :root {
+      --md-primary: {{ primary_color }};
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --md-primary: {{ primary_color }};
+      }
+    }
+  </style>
+  % end
 </head>
 
 <body>
