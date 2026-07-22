@@ -496,8 +496,7 @@
       if (!username) return;
 
       fetch('/admin/user-groups?username=' + encodeURIComponent(username))
-                     );
-      }).then(function (r) {
+        .then(function (r) {
         if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
         return r.json();
       }).then(function (data) {
