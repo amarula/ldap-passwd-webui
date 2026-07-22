@@ -38,10 +38,10 @@
         <span class="md-top-app-bar__title">{{ page_title }}</span>
         <div class="md-top-app-bar__actions">
           % if get('admin_session'):
-          <a href="/admin" class="md-top-app-bar__admin-link" title="Admin Panel">
+          <a href="{{ base_path }}/admin" class="md-top-app-bar__admin-link" title="Admin Panel">
             <span class="material-symbols-outlined">admin_panel_settings</span>
           </a>
-          <a href="/logout" class="md-top-app-bar__admin-link" title="Logout">
+          <a href="{{ base_path }}/logout" class="md-top-app-bar__admin-link" title="Logout">
             <span class="material-symbols-outlined">logout</span>
           </a>
           % end
@@ -62,14 +62,14 @@
         </p>
 
         <div class="md-welcome-card__actions">
-          <a href="/change-password" class="md-welcome-button">
+          <a href="{{ base_path }}/change-password" class="md-welcome-button">
             <span class="material-symbols-outlined md-welcome-button__icon">lock_reset</span>
             <span class="md-welcome-button__label">Change password</span>
             <span class="md-welcome-button__hint">Update your LDAP password</span>
             <span class="material-symbols-outlined md-welcome-button__arrow">arrow_forward</span>
           </a>
 
-          <a href="/login" class="md-welcome-button">
+          <a href="{{ base_path }}/login" class="md-welcome-button">
             <span class="material-symbols-outlined md-welcome-button__icon">admin_panel_settings</span>
             <span class="md-welcome-button__label">Administration</span>
             <span class="md-welcome-button__hint">Manage users and groups</span>
