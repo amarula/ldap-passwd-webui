@@ -301,11 +301,16 @@ body {
   transform-origin: left center;
 }
 
-/* Floating label — pinned to the top edge of the outline   */
+/* Floating label — sits on the outline edge with a background  */
+/* that covers the border, creating the Material Design 3 notch. */
 .md-field__input:focus ~ .md-field__label,
 .md-field__input:not(:placeholder-shown) ~ .md-field__label {
   top: 0;
   transform: translateY(-50%) scale(0.75);
+  background-color: var(--md-surface, #fdfbff);
+  padding: 0 0.25rem;
+  left: calc(3rem - 0.25rem);
+  z-index: 1;
 }
 
 /* Trailing icon button */
