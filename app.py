@@ -869,16 +869,18 @@ def get_admin_groups():
             c.bind()
             c.search(
                 group_base,
-                "(objectClass=groupOfNames)",
+                "(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))",
                 SUBTREE,
-                attributes=["cn", "member"],
+                attributes=["cn", "member", "uniqueMember"],
             )
             groups = []
             for entry in c.response:
+                attrs = entry.get("attributes", {})
+                members = attrs.get("member", []) + attrs.get("uniqueMember", [])
                 groups.append({
                     "dn": entry.get("dn", ""),
-                    "cn": entry.get("attributes", {}).get("cn", [""])[0],
-                    "members": entry.get("attributes", {}).get("member", []),
+                    "cn": attrs.get("cn", [""])[0],
+                    "members": members,
                 })
 
         response.content_type = "application/json"
@@ -931,18 +933,19 @@ def get_admin_user_groups():
 
             c.search(
                 group_base,
-                "(objectClass=groupOfNames)",
+                "(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))",
                 SUBTREE,
-                attributes=["cn", "member"],
+                attributes=["cn", "member", "uniqueMember"],
             )
 
             groups = []
             for entry in c.response:
-                members = entry.get("attributes", {}).get("member", [])
+                attrs = entry.get("attributes", {})
+                members = attrs.get("member", []) + attrs.get("uniqueMember", [])
                 if any(m.lower() == user_dn.lower() for m in members):
                     groups.append({
                         "dn": entry.get("dn", ""),
-                        "cn": entry.get("attributes", {}).get("cn", [""])[0],
+                        "cn": attrs.get("cn", [""])[0],
                     })
 
         response.content_type = "application/json"
