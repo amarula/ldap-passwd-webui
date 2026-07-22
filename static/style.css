@@ -284,7 +284,7 @@ body {
     border-width var(--md-duration-short) var(--md-easing-standard);
 }
 
-/* Label */
+/* Label (resting — centered vertically in the field) */
 .md-field__label {
   position: absolute;
   left: 3rem;  /* leading-space + icon width + icon gap */
@@ -294,16 +294,19 @@ body {
   font: var(--md-typescale-body);
   pointer-events: none;
   transition:
+    top var(--md-duration-short) var(--md-easing-standard),
     transform var(--md-duration-short) var(--md-easing-standard),
     font-size var(--md-duration-short) var(--md-easing-standard),
     color var(--md-duration-short) var(--md-easing-standard);
   transform-origin: left center;
 }
 
-/* Floating label — when input has value or is focused */
+/* Floating label — pinned to the top edge of the outline   */
+/* translateY(-50%) + scale(0.75) makes it straddle the line */
 .md-field__input:focus ~ .md-field__label,
 .md-field__input:not(:placeholder-shown) ~ .md-field__label {
-  transform: translateY(-0.85rem) scale(0.75);
+  top: 0;
+  transform: translateY(-50%) scale(0.75);
 }
 
 /* Trailing icon button */
