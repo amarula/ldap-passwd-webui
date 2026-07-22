@@ -152,7 +152,7 @@ def set_security_headers():
         "default-src 'self'",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "script-src 'self' https://unpkg.com",
+        "script-src 'self' 'unsafe-inline' https://unpkg.com",
         "img-src 'self' data:",
         "connect-src 'self'",
     ]
@@ -424,12 +424,13 @@ if _pwd.getboolean("require_digit", False):
     _parts.append("one digit")
 if _pwd.getboolean("require_special", False):
     _parts.append("one special character")
-if len(_parts) == 1:
+requirements = _parts[1:]
+if not requirements:
     _pwd["description"] = _parts[0]
-elif len(_parts) == 2:
-    _pwd["description"] = _parts[0] + " with " + _parts[1]
+elif len(requirements) == 1:
+    _pwd["description"] = _parts[0] + " with " + requirements[0]
 else:
-    _pwd["description"] = _parts[0] + " with " + ", ".join(_parts[1:-1]) + ", and " + _parts[-1]
+    _pwd["description"] = _parts[0] + " with " + ", ".join(requirements[:-1]) + " and " + requirements[-1]
 
 bottle.TEMPLATE_PATH = [BASE_DIR]
 
