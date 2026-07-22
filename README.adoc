@@ -87,6 +87,48 @@ Test accounts created by the seed data:
 phpLDAPadmin is available at http://localhost:8081 (login: `cn=admin,dc=example,dc=org` / `admin123`).
 
 
+== Screenshots
+
+*Welcome page.* The entry point shows two navigation cards: Change Password for
+self-service password updates, and Administration for the LDAP admin panel.
+The app bar displays the configured page icon and title. Administrators who are
+logged in also see quick links to the admin panel and logout.
+
+image::doc/welcome.png[Welcome page,width=600]
+
+*Password change.* The self-service form with real-time password strength meter,
+password visibility toggle, policy-aware helper text, and live match indicator.
+The strength bar uses Material Design status colours from red (weak) through
+orange, blue, to green (strong). Requirements are driven by the `[password]`
+config section.
+
+image::doc/password-change.png[Password change form,width=600]
+
+*Admin login.* LDAP-authenticated admin sign-in. On successful bind the
+application checks group membership against the configured `admin_group_dn`.
+Session cookies are signed and expire after one hour. Failed attempts show a
+snackbar error — no 500 tracebacks.
+
+image::doc/login.png[Admin login page,width=600]
+
+*Admin dashboard (Change Password tab).* The first tab lets admins change any
+user's password by providing their own admin credentials. Leave the target
+username empty to change the logged-in admin's own password.
+
+image::doc/admin-dashboard.png[Admin dashboard,width=600]
+
+*Mobile layout.* All pages adapt to small screens. The welcome cards stack
+vertically, the app bar compacts, and form elements remain usable at 375 px.
+
+image::doc/mobile.png[Mobile welcome page,width=375]
+
+*Dark mode.* Every page responds to `prefers-color-scheme: dark` at the OS
+level with no configuration needed. All custom properties are re-mapped in a
+single `@media` block.
+
+image::doc/dark-mode.png[Dark mode,width=600]
+
+
 == Configuration
 
 Configuration is read from the file link:settings.ini.example[settings.ini].
