@@ -818,12 +818,6 @@ def get_admin_groups():
     """Return a JSON list of groups for the admin UI."""
     _require_admin()
     session = _get_session()
-    form = request.query.getunicode
-    admin_password = form("admin-password", "")
-
-    if not admin_password:
-        response.status = 400
-        return {"error": "Admin password required"}
 
     conf = _ldap_conf()
     group_base = (
@@ -832,9 +826,17 @@ def get_admin_groups():
         else conf["base"]
     )
 
+    # Use the configured admin credentials for the group search, not
+    # the session user's credentials (which may not have read access).
+    admin_dn = CONF["admin"].get("admin_dn", "")
+    admin_pw = CONF["admin"].get("admin_password", "")
+    if not admin_dn or not admin_pw:
+        response.status = 500
+        return {"error": "admin_dn / admin_password not configured"}
+
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=session["dn"],
-                          password=admin_password) as c:
+        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
+                          password=admin_pw) as c:
             c.bind()
             c.search(
                 group_base,
@@ -867,18 +869,23 @@ def get_admin_user_groups():
     _require_admin()
     session = _get_session()
     username = request.query.getunicode("username", "")
-    admin_password = request.query.getunicode("admin-password", "")
 
-    if not username or not admin_password:
+    if not username:
         response.status = 400
-        return {"error": "Username and admin password required"}
+        return {"error": "Username required"}
 
     conf = _ldap_conf()
     safe_uid = ldap_escape(username)
 
+    admin_dn = CONF["admin"].get("admin_dn", "")
+    admin_pw = CONF["admin"].get("admin_password", "")
+    if not admin_dn or not admin_pw:
+        response.status = 500
+        return {"error": "admin_dn / admin_password not configured"}
+
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=session["dn"],
-                          password=admin_password) as c:
+        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
+                          password=admin_pw) as c:
             c.bind()
 
             user_dn = _find_user_dn(conf, c, safe_uid)
