@@ -1,23 +1,20 @@
 /* ==========================================================================
    ldap-passwd-webui — Material Design 3
    ==========================================================================
-   Every colour, spacing, and shape is driven by CSS custom properties.
-   Override any --md-* variable in a <style> block or your own stylesheet
-   to customise the look without editing this file.
 
-   Quick customisation — copy these to your page and tweak:
-   ────────────────────────────────────────────────────────────────────────
-   <style>
+   Every colour, spacing, and shape is driven by CSS custom properties.
+   Override any --md-* variable to customise the theme:
+
      :root {
-       --md-primary:         #2e7d32;   /* app bar, focus rings, button  */
-       --md-on-primary:      #ffffff;   /* text/icons on primary bg       */
-       --md-surface:         #fdfbff;   /* page and card background       */
-       --md-on-surface:      #1c1b1f;   /* body text                      */
-       --md-outline:         #79747e;   /* text-field border              */
-       --md-error:           #b3261e;   /* error text, match-indicator    */
-       --md-success:         #2e7d32;   /* success match-indicator        */
+       --md-primary:    #2e7d32;
+       --md-on-primary: #ffffff;
+       --md-surface:    #fdfbff;
+       --md-on-surface: #1c1b1f;
+       --md-outline:    #79747e;
+       --md-error:      #b3261e;
+       --md-success:    #2e7d32;
      }
-   </style>
+
    ========================================================================== */
 
 /* ── Design Tokens ─────────────────────────────────────────────────────── */
@@ -123,6 +120,9 @@
     --md-success:            #81c784;
     --md-success-container:  #005319;
 
+    --md-warning:            #ffb74d;
+    --md-info:               #4fc3f7;
+
     --md-field-icon-hover:   rgba(202, 196, 208, 0.12);
 
     --md-snackbar-bg:          #e6e1e5;
@@ -133,9 +133,9 @@
     --md-snackbar-error-text:  #601410;
     --md-snackbar-dismiss-hover: rgba(0, 0, 0, 0.12);
 
-    --md-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
-    --md-elevation-2: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
-    --md-elevation-3: 0 1px 3px 0 rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15);
+    --md-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.5), 0 1px 3px 1px rgba(0,0,0,0.3);
+    --md-elevation-2: 0 1px 2px 0 rgba(0,0,0,0.5), 0 2px 6px 2px rgba(0,0,0,0.3);
+    --md-elevation-3: 0 1px 3px 0 rgba(0,0,0,0.5), 0 4px 8px 3px rgba(0,0,0,0.3);
   }
 }
 
@@ -157,8 +157,8 @@ html {
 }
 
 body {
-  background-color: var(--md-surface);
-  color: var(--md-on-surface);
+  background-color: var(--md-surface, #fdfbff);
+  color: var(--md-on-surface, #1c1b1f);
   font: var(--md-typescale-body);
   min-height: 100vh;
 }
@@ -174,8 +174,8 @@ body {
 /* ── Top App Bar ───────────────────────────────────────────────────────── */
 
 .md-top-app-bar {
-  background-color: var(--md-primary);
-  color: var(--md-on-primary);
+  background-color: var(--md-primary, #2e7d32);
+  color: var(--md-on-primary, #ffffff);
   padding: 0 var(--md-spacing-2);
   box-shadow: var(--md-elevation-1);
   position: sticky;
@@ -217,7 +217,7 @@ body {
 /* ── Card ──────────────────────────────────────────────────────────────── */
 
 .md-card {
-  background-color: var(--md-surface);
+  background-color: var(--md-surface, #fdfbff);
   border-radius: var(--md-shape-lg);
   width: 100%;
   max-width: 28rem;
@@ -234,7 +234,7 @@ body {
 /* ── Material Text Field (outlined variant) ────────────────────────────── */
 
 .md-field {
-  --_field-leading-space: 0.75rem;  /* padding from outline to leading icon */
+  --_field-leading-space: 0.75rem;
 
   position: relative;
   display: flex;
@@ -250,7 +250,7 @@ body {
 }
 
 .md-field__icon {
-  color: var(--md-on-surface-variant);
+  color: var(--md-on-surface-variant, #49454f);
   font-size: 1.5rem;
   margin-right: 0.75rem;
   flex-shrink: 0;
@@ -261,7 +261,7 @@ body {
   flex: 1;
   border: none;
   background: transparent;
-  color: var(--md-on-surface);
+  color: var(--md-on-surface, #1c1b1f);
   font: var(--md-typescale-body);
   padding: 1.25rem 1rem 0.5rem 0;
   outline: none;
@@ -277,7 +277,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border: 1px solid var(--md-outline);
+  border: 1px solid var(--md-outline, #79747e);
   border-radius: var(--md-shape-sm);
   transition:
     border-color var(--md-duration-short) var(--md-easing-standard),
@@ -287,10 +287,10 @@ body {
 /* Label (resting — centered vertically in the field) */
 .md-field__label {
   position: absolute;
-  left: 3rem;  /* leading-space + icon width + icon gap */
+  left: 3rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--md-on-surface-variant);
+  color: var(--md-on-surface-variant, #49454f);
   font: var(--md-typescale-body);
   pointer-events: none;
   transition:
@@ -302,7 +302,6 @@ body {
 }
 
 /* Floating label — pinned to the top edge of the outline   */
-/* translateY(-50%) + scale(0.75) makes it straddle the line */
 .md-field__input:focus ~ .md-field__label,
 .md-field__input:not(:placeholder-shown) ~ .md-field__label {
   top: 0;
@@ -313,7 +312,7 @@ body {
 .md-field__trailing-icon {
   background: none;
   border: none;
-  color: var(--md-on-surface-variant);
+  color: var(--md-on-surface-variant, #49454f);
   cursor: pointer;
   padding: var(--md-spacing-1);
   margin-left: 0;
@@ -334,26 +333,26 @@ body {
 
 /* Focus state */
 .md-field:focus-within .md-field__outline {
-  border-color: var(--md-primary);
+  border-color: var(--md-primary, #2e7d32);
   border-width: 2px;
 }
 
 .md-field:focus-within .md-field__icon {
-  color: var(--md-primary);
+  color: var(--md-primary, #2e7d32);
 }
 
 .md-field:focus-within .md-field__label {
-  color: var(--md-primary);
+  color: var(--md-primary, #2e7d32);
 }
 
 /* Error state */
 .md-field--error .md-field__outline {
-  border-color: var(--md-error);
+  border-color: var(--md-error, #b3261e);
 }
 
 .md-field--error .md-field__icon,
 .md-field--error .md-field__label {
-  color: var(--md-error);
+  color: var(--md-error, #b3261e);
 }
 
 /* ── Password Strength Meter ───────────────────────────────────────────── */
@@ -368,7 +367,7 @@ body {
 .md-strength-meter__track {
   flex: 1;
   height: 0.25rem;
-  background-color: var(--md-surface-variant);
+  background-color: var(--md-surface-variant, #e7e0e8);
   border-radius: var(--md-shape-full);
   overflow: hidden;
 }
@@ -377,7 +376,7 @@ body {
   height: 100%;
   width: 0%;
   border-radius: var(--md-shape-full);
-  background-color: var(--md-surface-variant);
+  background-color: var(--md-surface-variant, #e7e0e8);
   transition:
     width var(--md-duration-medium) var(--md-easing-standard),
     background-color var(--md-duration-medium) var(--md-easing-standard);
@@ -388,7 +387,7 @@ body {
   font-weight: 500;
   min-width: 3rem;
   text-align: right;
-  color: var(--md-on-surface-variant);
+  color: var(--md-on-surface-variant, #49454f);
 }
 
 /* ── Helper / Hint Text ────────────────────────────────────────────────── */
@@ -399,7 +398,7 @@ body {
   gap: var(--md-spacing-1);
   margin: 0 0 var(--md-spacing-2) 3rem;
   font: var(--md-typescale-small);
-  color: var(--md-on-surface-variant);
+  color: var(--md-on-surface-variant, #49454f);
 }
 
 .md-helper-text__icon {
@@ -418,11 +417,11 @@ body {
 }
 
 .md-match-text--success {
-  color: var(--md-success);
+  color: var(--md-success, #2e7d32);
 }
 
 .md-match-text--error {
-  color: var(--md-error);
+  color: var(--md-error, #b3261e);
 }
 
 /* ── Filled Button ─────────────────────────────────────────────────────── */
@@ -437,8 +436,8 @@ body {
   padding: 0 var(--md-spacing-3);
   margin-top: var(--md-spacing-2);
 
-  background-color: var(--md-primary);
-  color: var(--md-on-primary);
+  background-color: var(--md-primary, #2e7d32);
+  color: var(--md-on-primary, #ffffff);
   border: none;
   border-radius: var(--md-shape-full);
 
@@ -457,7 +456,7 @@ body {
 }
 
 .md-filled-button:hover {
-  background-color: var(--md-primary);
+  background-color: var(--md-primary, #2e7d32);
   filter: brightness(1.08);
   box-shadow: var(--md-elevation-2);
 }
@@ -468,7 +467,7 @@ body {
 }
 
 .md-filled-button:focus-visible {
-  outline: 3px solid var(--md-primary);
+  outline: 3px solid var(--md-primary, #2e7d32);
   outline-offset: 2px;
 }
 
@@ -493,7 +492,7 @@ body {
   position: absolute;
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid var(--md-on-primary);
+  border: 2px solid var(--md-on-primary, #ffffff);
   border-top-color: transparent;
   border-radius: 50%;
   animation: md-spin 0.6s linear infinite;
@@ -517,8 +516,8 @@ body {
   max-width: 36rem;
   padding: var(--md-spacing-1) var(--md-spacing-2);
   border-radius: var(--md-shape-sm);
-  background-color: var(--md-snackbar-bg);
-  color: var(--md-snackbar-text);
+  background-color: var(--md-snackbar-bg, #313033);
+  color: var(--md-snackbar-text, #f4eff4);
   box-shadow: var(--md-elevation-3);
   z-index: 100;
   transition: transform var(--md-duration-medium) var(--md-easing-emphasized);
@@ -529,13 +528,13 @@ body {
 }
 
 .md-snackbar--success {
-  background-color: var(--md-snackbar-success-bg);
-  color: var(--md-snackbar-success-text);
+  background-color: var(--md-snackbar-success-bg, #1b5e20);
+  color: var(--md-snackbar-success-text, #ffffff);
 }
 
 .md-snackbar--error {
-  background-color: var(--md-snackbar-error-bg);
-  color: var(--md-snackbar-error-text);
+  background-color: var(--md-snackbar-error-bg, #b3261e);
+  color: var(--md-snackbar-error-text, #ffffff);
 }
 
 .md-snackbar__icon {
@@ -564,7 +563,7 @@ body {
 
 .md-snackbar__dismiss:hover {
   opacity: 1;
-  background-color: var(--md-snackbar-dismiss-hover);
+  background-color: var(--md-snackbar-dismiss-hover, rgba(255, 255, 255, 0.12));
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
@@ -611,7 +610,7 @@ body {
 /* ── Focus Visibility ──────────────────────────────────────────────────── */
 
 :focus-visible {
-  outline: 2px solid var(--md-primary);
+  outline: 2px solid var(--md-primary, #2e7d32);
   outline-offset: 2px;
 }
 
@@ -622,7 +621,7 @@ body {
 
 /* Trailing icon buttons use an inset outline so it stays inside the field */
 .md-field__trailing-icon:focus-visible {
-  outline: 2px solid var(--md-primary);
+  outline: 2px solid var(--md-primary, #2e7d32);
   outline-offset: -2px;
 }
 
