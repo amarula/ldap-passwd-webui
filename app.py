@@ -1007,6 +1007,61 @@ def _find_user_dn(conf, conn, uid):
     return conn.response[0]["dn"] if conn.response else None
 
 
+def _search_users(conf, conn, query):
+    """Search for users by uid, cn, givenName, sn, or mail.
+    Returns list of dicts with dn, uid, cn, mail."""
+    safe = ldap_escape(query)
+    filt = (
+        "(|"
+        "(uid=*%s*)"
+        "(cn=*%s*)"
+        "(givenName=*%s*)"
+        "(sn=*%s*)"
+        "(mail=*%s*)"
+        ")" % (safe, safe, safe, safe, safe)
+    )
+    conn.search(conf["base"], filt, SUBTREE,
+                attributes=["uid", "cn", "mail"])
+    results = []
+    for entry in conn.response:
+        attrs = entry.get("attributes", {})
+        if not attrs:
+            continue
+        results.append({
+            "dn": entry.get("dn", ""),
+            "uid": (attrs.get("uid") or [""])[0],
+            "cn": (attrs.get("cn") or [""])[0],
+            "mail": (attrs.get("mail") or [""])[0],
+        })
+    return results
+
+
+@get("/admin/user-search")
+def get_admin_user_search():
+    """Search LDAP for users matching a query across multiple fields."""
+    _require_admin()
+    query = request.query.getunicode("q", "")
+    if len(query) < 2:
+        return {"users": []}
+
+    conf = _ldap_conf()
+    admin_dn = CONF["admin"].get("admin_dn", "")
+    admin_pw = CONF["admin"].get("admin_password", "")
+    if not admin_dn or not admin_pw:
+        response.status = 500
+        return {"error": "admin_dn / admin_password not configured"}
+
+    try:
+        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
+                          password=admin_pw) as c:
+            c.bind()
+            users = _search_users(conf, c, query)
+        return {"users": users}
+    except Exception as e:
+        response.status = 500
+        return {"error": str(e)}
+
+
 def change_passwords(username, old_pass, new_pass):
     changed = []
 
