@@ -197,10 +197,13 @@ body {
   --_field-bg: var(--md-surface);
   --_field-outline: var(--md-outline);
   --_field-label: var(--md-on-surface-variant);
+  --_field-leading-space: 0.75rem;  /* padding from outline to leading icon */
 
   position: relative;
   display: flex;
   align-items: center;
+  padding-left: var(--_field-leading-space);
+  padding-right: 0.25rem;
   margin-bottom: var(--md-spacing-2);
   min-height: 3.5rem;
   cursor: text;
@@ -209,7 +212,7 @@ body {
 .md-field__icon {
   color: var(--md-on-surface-variant);
   font-size: 1.5rem;
-  margin-right: var(--md-spacing-1);
+  margin-right: 0.75rem;
   flex-shrink: 0;
   transition: color var(--md-duration-short) var(--md-easing-standard);
 }
@@ -244,7 +247,7 @@ body {
 /* Label */
 .md-field__label {
   position: absolute;
-  left: 2.25rem;  /* icon width + gap */
+  left: 3rem;  /* leading-space + icon width + icon gap */
   top: 50%;
   transform: translateY(-50%);
   color: var(--md-on-surface-variant);
@@ -315,7 +318,7 @@ body {
 /* ── Password Strength Meter ───────────────────────────────────────────── */
 
 .md-strength-meter {
-  margin: 0 0 var(--md-spacing-1) 2.25rem;
+  margin: 0 0 var(--md-spacing-1) 3rem;
   display: flex;
   align-items: center;
   gap: var(--md-spacing-1);
@@ -353,7 +356,7 @@ body {
   display: flex;
   align-items: flex-start;
   gap: var(--md-spacing-1);
-  margin: 0 0 var(--md-spacing-2) 2.25rem;
+  margin: 0 0 var(--md-spacing-2) 3rem;
   font: var(--md-typescale-small);
   color: var(--md-on-surface-variant);
 }
@@ -367,7 +370,7 @@ body {
 /* ── Password Match Indicator ──────────────────────────────────────────── */
 
 .md-match-text {
-  margin: 0 0 var(--md-spacing-1) 2.25rem;
+  margin: 0 0 var(--md-spacing-1) 3rem;
   font: var(--md-typescale-small);
   font-weight: 500;
   min-height: 1.25rem;
@@ -569,6 +572,17 @@ body {
 :focus-visible {
   outline: 2px solid var(--md-primary);
   outline-offset: 2px;
+}
+
+/* Material fields have their own focus indicator — suppress the global one */
+.md-field__input:focus-visible {
+  outline: none;
+}
+
+/* Trailing icon buttons inside fields also don't need a focus ring */
+.md-field__trailing-icon:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: -2px;
 }
 
 /* ── Print Styles ──────────────────────────────────────────────────────── */

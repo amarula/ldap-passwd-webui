@@ -1,3 +1,2 @@
 bottle >= 0.13
 ldap3 >= 2.0, < 4.0
-configparser; python_version < '3.3'
