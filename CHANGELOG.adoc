@@ -5,28 +5,69 @@
 :tags: {repo-uri}/releases/tag
 
 
-== link:{tags}/v2.2.0[2.2.0] (2026-07-22)
+== link:{tags}/v3.0.0[3.0.0] (2026-07-22)
 
-* Add LDAP filter escaping to prevent LDAP injection (RFC 4515).
-* Add CSRF protection via signed SameSite-strict cookies.
-* Add HTML escaping of all error messages to prevent XSS.
-* Add in-memory rate limiting with sliding window (per IP and username).
-* Add security headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options,
+=== New Features
+
+* Add welcome page (/) with navigation cards for Change Password and Administration.
+* Add admin panel (/admin) with three tabs: Change Password, Create User, Groups.
+* Add LDAP user creation (inetOrgPerson) with optional group assignment at creation time.
+* Add LDAP group creation (groupOfNames) with admin as initial member.
+* Add group membership management — add and remove users from groups.
+* Add user group lookup — see all groups a user belongs to.
+* Add admin authentication via LDAP bind with group-membership authorization.
+* Add signed admin session cookies (HttpOnly, SameSite-strict, 1-hour expiry).
+* Add configurable password complexity policy (min_length, require_uppercase,
+  require_lowercase, require_digit, require_special).
+* Add configurable primary colour (primary_color in [html] section).
+* Add configurable page icon (page_icon in [html] section).
+* Add base_path support for reverse-proxy sub-path deployments.
+* Add Docker Compose setup with OpenLDAP and phpLDAPadmin for local testing.
+* Add LDIF seed data with test users, groups, and admin group.
+
+=== Security
+
+* LDAP filter escaping to prevent LDAP injection (RFC 4515).
+* CSRF protection via signed SameSite-strict cookies.
+* HTML escaping of all error messages to prevent XSS.
+* In-memory rate limiting with sliding window (per IP and username).
+* Security headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options,
   X-XSS-Protection, Referrer-Policy, X-Permitted-Cross-Domain-Policies.
-* Add server-side password complexity enforcement (uppercase, lowercase,
-  digit, special character).
-* Add TLS certificate verification support for LDAPS connections.
-* Sanitize usernames in log messages (replace with SHA-256 prefix hash).
-* Redesign UI with Material Design 3 (card layout, outlined text fields,
-  floating labels, Material Symbols icons, Roboto typography).
-* Add password strength meter with real-time entropy scoring.
-* Add password visibility toggle on all password fields.
-* Add live password match/mismatch indicator.
-* Add animated Material snackbar for success and error messages.
-* Add automatic dark mode support via prefers-color-scheme.
-* Add prefers-reduced-motion support for accessibility.
-* Improve mobile responsiveness down to 320px width.
-* Update minimum bottle version to 0.13 for security features.
+* Server-side password complexity enforcement (configurable).
+* TLS certificate verification support for LDAPS connections.
+* Usernames sanitized in log messages (SHA-256 prefix hash).
+* Admin group-membership checks use a separate privileged LDAP connection.
+
+=== UI
+
+* Material Design 3 interface with light and dark theme support.
+* Card layout, outlined text fields, floating labels, Material Symbols icons.
+* Password strength meter with real-time entropy scoring.
+* Password visibility toggle on all password fields.
+* Live password match/mismatch indicator.
+* Animated Material snackbar for success and error messages.
+* Tab bar navigation for admin panel.
+* Group list with member detail panel and user group membership lookup.
+* Checkbox group selection when creating users.
+* Select dropdown for group management forms.
+* Automatic dark mode via prefers-color-scheme.
+* Reduced motion support via prefers-reduced-motion.
+* Mobile responsive down to 320px width.
+
+=== Testing & Development
+
+* Comprehensive pytest suite (62 tests).
+* Test fixtures for WSGI client simulation and config management.
+* Docker Compose for local LDAP testing.
+* LDIF seed data with 3 users, 2 groups, 1 admin group.
+
+=== Breaking Changes
+
+* Root path (/) now shows a welcome page instead of the password change form.
+  Password change moved to /change-password.
+* Minimum bottle version bumped to 0.13 for cookie security features.
+* New [password] config section required for password policy.
+* New [admin] config section for admin panel functionality.
 
 
 == link:{tags}/v2.1.0[2.1.0] (2019-01-09)

@@ -1,4 +1,4 @@
-= Web UI for changing LDAP password
+= Web UI for LDAP Password and Account Management
 Jakub Jirutka <https://github.com/jirutka[@jirutka]>; Michael Trimarchi <https://github.com/panicking[@panicking]>
 //custom
 :proj-name: ldap-passwd-webui
@@ -6,20 +6,40 @@ Jakub Jirutka <https://github.com/jirutka[@jirutka]>; Michael Trimarchi <https:/
 :wikip-url: https://en.wikipedia.org/wiki
 :pypi-url: https://pypi.python.org/pypi
 
-The aim of this project is to provide a simple yet secure web form for users
-to change their password stored in LDAP or Active Directory (Samba 4 AD).
+The aim of this project is to provide a secure web interface for managing
+LDAP/Active Directory accounts. End users can change their own passwords;
+administrators can create users, create groups, and manage group memberships.
 It's built with http://bottlepy.org[Bottle], a WSGI micro web-framework for
 Python, and features a modern Material Design 3 interface.
 
 
 == Features
 
-* Simple, single-page password change form
+* Self-service password change form for end users
+* Welcome page with navigation cards for password change and administration
+* Admin panel with three tabs: Change Password, Create User, and Groups
+* Create LDAP users (inetOrgPerson) with optional group assignment
+* Create LDAP groups (groupOfNames) and add/remove members
+* View group memberships per user
 * Support for OpenLDAP and Active Directory / Samba 4 AD
 * Atomic multi-LDAP password change with automatic rollback on failure
-* Modern Material Design 3 interface with light and dark theme support
+* Configurable password complexity policy (length, uppercase, lowercase, digit, special)
+* Material Design 3 interface with light/dark theme and configurable primary colour
+* Admin authentication via LDAP bind with group-membership authorization
+* Signed session cookies with configurable expiry
 * Password strength meter with real-time feedback
+* Password visibility toggle on all password fields
 * Built-in security hardening (see <<Security>>)
+
+
+== Page Flow
+
+[%hardbreaks]
+*+/+* — Welcome page with two navigation cards: *Change password* and *Administration*
+*+/change-password+* — Self-service password change form
+*+/login+* — Admin authentication page
+*+/admin+* — Admin dashboard with tabs: Change Password, Create User, Groups
+*+/logout+* — Clears the admin session and returns to the welcome page
 
 
 == Installation
@@ -59,12 +79,73 @@ Read the next sections to learn how to run it.
 * {pypi-url}/bottle/[bottle] >= 0.13
 * {pypi-url}/ldap3[ldap3] >= 2.0
 
+=== Local Testing with Docker
+
+A `docker-compose.yml` is included to spin up an OpenLDAP server and
+phpLDAPadmin for local testing:
+
+[source, sh]
+----
+docker compose up -d
+# Wait a few seconds, then seed test data:
+docker exec -i ldap-test ldapadd -x -D "cn=admin,dc=example,dc=org" \
+    -w admin123 < tests/fixtures/seed.ldif
+----
+
+Test accounts created by the seed data:
+
+[%header,cols="3*"]
+|===
+| Username | Password | Admin?
+| `admin`  | `admin123` | Yes
+| `jdoe`   | `user123`  | Yes
+| `bsmith` | `user123`  | No
+|===
+
+phpLDAPadmin is available at http://localhost:8081 (login: `cn=admin,dc=example,dc=org` / `admin123`).
+
 
 == Configuration
 
 Configuration is read from the file link:settings.ini.example[settings.ini].
 You may change location of the settings file using the environment variable
 `CONF_FILE`.
+
+=== HTML / Page Settings
+
+[source, ini]
+----
+[html]
+page_title = Change your password on example.org
+
+# Material Symbols icon in the app bar (default: lock).
+page_icon = lock
+
+# Base path for reverse-proxy sub-path deployments (e.g. /passwd).
+# Omit or leave empty for root-path deployments.
+#base_path = /passwd
+
+# Theme colour — app bar, buttons, focus rings.
+# Uses Material Design 3 green (#2e7d32) by default.
+#primary_color = #004998
+----
+
+=== Password Policy
+
+Configure minimum length and character-class requirements to match
+your LDAP server's ppolicy, Gerrit, Jenkins, or Gitea defaults.
+
+[source, ini]
+----
+[password]
+min_length = 8
+
+# Uncomment to enforce character-class requirements:
+#require_uppercase = true
+#require_lowercase = true
+#require_digit     = true
+#require_special   = true
+----
 
 === LDAP Connection
 
@@ -122,6 +203,32 @@ You may specify multiple LDAP configurations using `[ldap:0]`, `[ldap:1]`,
 etc. The password will be changed in all of them. If any change fails, the
 previous changes are automatically rolled back.
 
+=== Admin Panel
+
+The admin panel allows authorized users to create users, create groups,
+and manage group memberships. Authentication is via LDAP bind; authorization
+is via membership in a configurable LDAP group.
+
+[source, ini]
+----
+[admin]
+# DN of the group whose members are granted admin access.
+admin_group_dn = cn=admins,ou=Groups,dc=example,dc=org
+
+# Base DN for new groups created via the admin panel.
+# Defaults to the same base as the first LDAP section.
+group_base_dn = ou=Groups,dc=example,dc=org
+
+# LDAP admin credentials used for group-membership lookups (must have
+# read access to the admin group entry).
+admin_dn = cn=admin,dc=example,dc=org
+admin_password = admin123
+
+# Which LDAP section to use for admin authentication and operations.
+# Defaults to the first [ldap] / [ldap:*] section.
+#ldap_section = ldap:0
+----
+
 === Server Configuration
 
 [source, ini]
@@ -130,14 +237,6 @@ previous changes are automatically rolled back.
 server = auto
 host = localhost
 port = 8080
-----
-
-=== Page Title
-
-[source, ini]
-----
-[html]
-page_title = Change your password on example.org
 ----
 
 
@@ -156,8 +255,11 @@ This application implements multiple layers of security hardening:
 * *Security Headers* — Every response includes Content-Security-Policy,
   Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options,
   X-XSS-Protection, and Referrer-Policy.
-* *Password Complexity* — Server-side enforcement requires at least 8
-  characters with uppercase, lowercase, digit, and special character.
+* *Admin Session* — Signed, HttpOnly, SameSite-strict session cookies
+  with configurable 1-hour expiry. Group-membership lookups use a separate
+  privileged LDAP connection.
+* *Password Complexity* — Configurable server-side enforcement of minimum
+  length and character-class requirements.
 * *Log Sanitization* — Usernames are never logged in plain text; only a
   SHA-256 prefix hash is recorded.
 * *TLS Verification* — LDAPS/TLS connections validate server certificates
@@ -172,6 +274,7 @@ For production use, always:
    default).
 3. Place the application behind authentication if exposing to the internet.
 4. Use `tls_req_cert = demand` in production LDAP configurations.
+5. Set `base_path` in `[html]` when running under a sub-path URL.
 
 
 == Run it
@@ -218,7 +321,6 @@ processes = 1
 threads = 2
 # map URI paths to applications
 mount = /admin/{proj-name}={proj-name}/app.py
-#mount = /admin/change-world=change-world/app.py
 manage-script-name = true
 ----
 
@@ -238,6 +340,17 @@ server {
         include     uwsgi_params;
     }
 }
+----
+
+
+== Development
+
+=== Running Tests
+
+[source, sh]
+----
+pip install pytest
+python3 -m pytest tests/ -v
 ----
 
 
