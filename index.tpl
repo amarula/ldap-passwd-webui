@@ -40,6 +40,11 @@
       <div class="md-top-app-bar__row">
         <span class="material-symbols-outlined md-top-app-bar__icon">{{ get('page_icon', 'lock') }}</span>
         <span class="md-top-app-bar__title">{{ page_title }}</span>
+        % if get('admin_session'):
+        <a href="/admin" class="md-top-app-bar__admin-link" title="Admin Panel">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+        </a>
+        % end
       </div>
     </header>
 
