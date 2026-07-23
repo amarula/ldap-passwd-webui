@@ -487,89 +487,36 @@
 
     document.getElementById('btn-refresh-groups').addEventListener('click', refreshGroupsForTab);
 
-    // ══════════════════════════════════════════════════════════════════
-    // GROUPS TAB — user lookup
-    // ══════════════════════════════════════════════════════════════════
-
-    var lookupInput = document.getElementById('lookup-username');
-    var lookupTimer = null;
-
-    function lookupUserGroups(uid) {
+    // ── User lookup ──────────────────────────────────────────────────
+    document.getElementById('btn-lookup-user').addEventListener('click', function () {
+      var uid = document.getElementById('lookup-username').value.trim();
+      if (!uid) return;
       fetch('{{ base_path }}/admin/user-groups?username=' + encodeURIComponent(uid))
         .then(function (r) {
-        if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
-        return r.json();
-      }).then(function (data) {
-        var container = document.getElementById('user-groups-list');
-        if (!data.groups || !data.groups.length) {
-          container.innerHTML = '<p class="md-groups__empty">User <strong>' + esc(uid) +
-            '</strong> is not a member of any group.</p>';
-          return;
-        }
-        var html = '<p class="md-groups__summary">' + esc(uid) + ' belongs to ' +
-          data.groups.length + ' group(s):</p>';
-        data.groups.forEach(function (g) {
-          html += '<div class="md-group-item">';
-          html += '<span class="md-group-item__icon material-symbols-outlined">group</span>';
-          html += '<div class="md-group-item__info">';
-          html += '<span class="md-group-item__name">' + esc(g.cn) + '</span>';
-          html += '<span class="md-group-item__dn">' + esc(g.dn) + '</span>';
-          html += '</div></div>';
+          if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
+          return r.json();
+        }).then(function (data) {
+          var container = document.getElementById('user-groups-list');
+          if (!data.groups || !data.groups.length) {
+            container.innerHTML = '<p class="md-groups__empty">User <strong>' + esc(uid) +
+              '</strong> is not a member of any group.</p>';
+            return;
+          }
+          var html = '<p class="md-groups__summary">' + esc(uid) + ' belongs to ' +
+            data.groups.length + ' group(s):</p>';
+          data.groups.forEach(function (g) {
+            html += '<div class="md-group-item">';
+            html += '<span class="md-group-item__icon material-symbols-outlined">group</span>';
+            html += '<div class="md-group-item__info">';
+            html += '<span class="md-group-item__name">' + esc(g.cn) + '</span>';
+            html += '<span class="md-group-item__dn">' + esc(g.dn) + '</span>';
+            html += '</div></div>';
+          });
+          container.innerHTML = html;
+        }).catch(function (err) {
+          document.getElementById('user-groups-list').innerHTML =
+            '<p class="md-groups__error">' + esc(err.message || 'Error') + '</p>';
         });
-        container.innerHTML = html;
-      }).catch(function (err) {
-        document.getElementById('user-groups-list').innerHTML =
-          '<p class="md-groups__error">' + esc(err.message || 'Error') + '</p>';
-      });
-    }
-
-    document.getElementById('btn-lookup-user').addEventListener('click', function () {
-      var val = lookupInput.value.trim();
-      if (!val) return;
-      // If the user typed a uid (no spaces, short), use it directly.
-      // Otherwise search by name and pick the first match.
-      if (val.indexOf(' ') === -1 && val.indexOf('@') === -1 && val.length < 20) {
-        lookupUserGroups(val);
-      } else {
-        fetch('{{ base_path }}/admin/user-search?q=' + encodeURIComponent(val))
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (!data.users || !data.users.length) {
-              document.getElementById('user-groups-list').innerHTML =
-                '<p class="md-groups__empty">No users found matching <strong>' + esc(val) + '</strong>.</p>';
-              return;
-            }
-            // Show all matches and pick first
-            lookupUserGroups(data.users[0].uid);
-          });
-      }
-    });
-
-    // Autocomplete as user types
-    lookupInput.addEventListener('input', function () {
-      clearTimeout(lookupTimer);
-      var val = this.value.trim();
-      if (val.length < 2) return;
-      lookupTimer = setTimeout(function () {
-        fetch('{{ base_path }}/admin/user-search?q=' + encodeURIComponent(val))
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            var listId = 'lookup-suggestions';
-            var old = document.getElementById(listId);
-            if (old) old.remove();
-            if (!data.users || !data.users.length) return;
-            var dl = document.createElement('datalist');
-            dl.id = listId;
-            data.users.forEach(function (u) {
-              var opt = document.createElement('option');
-              opt.value = u.uid;
-              opt.textContent = u.cn + ' (' + u.uid + ') ' + (u.mail || '');
-              dl.appendChild(opt);
-            });
-            lookupInput.setAttribute('list', listId);
-            lookupInput.parentNode.appendChild(dl);
-          });
-      }, 300);
     });
 
     // ══════════════════════════════════════════════════════════════════
