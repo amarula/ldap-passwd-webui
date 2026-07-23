@@ -229,9 +229,35 @@ def _check_admin_group(user_dn: str) -> bool:
     except Exception:
         return False
 
+def _add_to_group(conn, group_dn, user_dn):
+    """Add user_dn to group using the correct member attribute
+    (uniqueMember for groupOfUniqueNames, member otherwise)."""
+    conn.search(group_dn, "(objectClass=*)", SUBTREE, attributes=["objectClass"])
+    ocs = []
+    if conn.response:
+        ocs = [oc.lower() for oc in
+               conn.response[0].get("attributes", {}).get("objectClass", [])]
+    attr = "uniqueMember" if "groupofuniquenames" in ocs else "member"
+    conn.modify(group_dn, {attr: [(MODIFY_ADD, [user_dn])]})
+    return attr
+
+
 
 def _ldap_conf() -> ConfigParser:
     return CONF[_get_admin_ldap_section()]
+def _remove_from_group(conn, group_dn, user_dn):
+    """Remove user_dn from group using the correct member attribute."""
+    conn.search(group_dn, "(objectClass=*)", SUBTREE, attributes=["objectClass"])
+    ocs = []
+    if conn.response:
+        ocs = [oc.lower() for oc in
+               conn.response[0].get("attributes", {}).get("objectClass", [])]
+    attr = "uniqueMember" if "groupofuniquenames" in ocs else "member"
+    conn.modify(group_dn, {attr: [(MODIFY_DELETE, [user_dn])]})
+    return attr
+
+
+
 
 
 # ---------------------------------------------------------------------------
@@ -684,7 +710,7 @@ def post_admin_create_user():
             group_dns = [g.strip() for g in form("groups", "").splitlines() if g.strip()]
             for gdn in group_dns:
                 try:
-                    c.modify(gdn, {"member": [(MODIFY_ADD, [dn])]})
+                    _add_to_group(c, gdn, dn)
                 except Exception as e2:
                     LOG.warning("Failed to add %s to group %s: %s", uid, gdn, e2)
 
@@ -750,9 +776,9 @@ def post_admin_create_group():
         with _admin_bind(conf, session) as c:
             dn = "cn=%s,%s" % (safe_name, group_base)
             attrs = {
-                "objectClass": ["top", "groupOfNames"],
+                "objectClass": ["top", "groupOfUniqueNames"],
                 "cn": group_name,
-                "member": session["dn"],
+                "uniqueMember": session["dn"],
             }
 
             if not c.add(dn, attributes=attrs):
@@ -828,7 +854,10 @@ def post_admin_modify_group():
                 return error(f"User '{member_uid}' not found.")
 
             mod_op = MODIFY_ADD if action == "add" else MODIFY_DELETE
-            c.modify(group_dn, {"member": [(mod_op, [member_dn])]})
+            if mod_op == MODIFY_ADD:
+                _add_to_group(c, group_dn, member_dn)
+            else:
+                _remove_from_group(c, group_dn, member_dn)
 
             if not c.result.get("description", "").startswith("success"):
                 raise Error(
