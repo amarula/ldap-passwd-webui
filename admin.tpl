@@ -251,15 +251,6 @@
                       <span class="md-field__outline"></span>
                     </div>
 
-                    <div class="md-field">
-                      <span class="md-field__icon material-symbols-outlined">shield_person</span>
-                      <input class="md-field__input md-field__input--password" name="admin-password"
-                             type="password" required placeholder=" "
-                             aria-label="Your admin password">
-                      <span class="md-field__label">Your admin password</span>
-                      <span class="md-field__outline"></span>
-                    </div>
-
                     <input type="hidden" name="action" value="add" id="group-action">
 
                     <div class="md-groups__actions">
@@ -286,15 +277,6 @@
                       <input class="md-field__input" name="group-name" type="text" required
                              placeholder=" " aria-label="Group name">
                       <span class="md-field__label">Group name (cn)</span>
-                      <span class="md-field__outline"></span>
-                    </div>
-
-                    <div class="md-field">
-                      <span class="md-field__icon material-symbols-outlined">shield_person</span>
-                      <input class="md-field__input md-field__input--password" name="admin-password"
-                             type="password" required placeholder=" "
-                             aria-label="Your admin password">
-                      <span class="md-field__label">Your admin password</span>
                       <span class="md-field__outline"></span>
                     </div>
 
