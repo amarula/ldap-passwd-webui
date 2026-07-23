@@ -603,7 +603,7 @@
     % if alerts:
     (function () {
       var type = '{{ alerts[0][0] }}';
-      document.getElementById('snackbar-text').textContent = '{{! alerts[0][1] }}';
+      document.getElementById('snackbar-text').textContent = '{{! js_escape(alerts[0][1]) }}';
       var icon = document.getElementById('snackbar-icon');
       var snackbar = document.getElementById('snackbar');
       if (type === 'error') {

@@ -1219,6 +1219,10 @@ SimpleTemplate.defaults["alerts"] = []
 # base_path for deployments behind a reverse proxy (e.g. /passwd).
 # Set in settings.ini [html] or leave empty for root-path deployment.
 SimpleTemplate.defaults.setdefault("base_path", "")
+# Helper for safely embedding strings in JavaScript single-quoted literals.
+def _js_escape(s: str) -> str:
+    return s.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
+SimpleTemplate.defaults["js_escape"] = _js_escape
 
 if __name__ == "__main__":
     bottle.run(**CONF["server"])

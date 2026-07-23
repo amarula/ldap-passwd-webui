@@ -286,7 +286,7 @@
       var icon = document.getElementById('snackbar-icon');
       var snackbar = document.getElementById('snackbar');
 
-      text.textContent = '{{! alerts[0][1] }}';
+      text.textContent = '{{! js_escape(alerts[0][1]) }}';
       if (type === 'error') {
         icon.textContent = 'error';
         snackbar.className = 'md-snackbar md-snackbar--error md-snackbar--show';
