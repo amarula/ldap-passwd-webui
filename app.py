@@ -562,16 +562,21 @@ def post_admin_change_password():
     conf = _ldap_conf()
     safe_uid = ldap_escape(target_user)
 
+    admin_dn = CONF["admin"].get("admin_dn", "")
+    admin_pw = CONF["admin"].get("admin_password", "")
+    if not admin_dn or not admin_pw:
+        return error("admin_dn / admin_password not configured.")
+
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=session["dn"],
-                          password=form("admin-password")) as c:
+        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
+                          password=admin_pw) as c:
             c.bind()
             user_dn = _find_user_dn(conf, c, safe_uid)
             if not user_dn:
                 return error(f"User '{target_user}' not found.")
             c.extend.standard.modify_password(user_dn, None, new_pass)
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
-        return error("Your admin password is incorrect!")
+        return error("LDAP admin bind failed — check admin_dn/admin_password config.")
     except Error as e:
         return error(str(e))
 
@@ -610,7 +615,6 @@ def post_admin_create_user():
     sn = form("sn") or uid
     mail = form("mail", "")
     user_password = form("user-password")
-    admin_password = form("admin-password")
 
     def error(msg):
         return template(
@@ -627,9 +631,15 @@ def post_admin_create_user():
     conf = _ldap_conf()
     safe_uid = ldap_escape(uid)
 
+    # Use the configured admin credentials for write operations.
+    admin_dn = CONF["admin"].get("admin_dn", "")
+    admin_pw = CONF["admin"].get("admin_password", "")
+    if not admin_dn or not admin_pw:
+        return error("admin_dn / admin_password not configured in [admin] section.")
+
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=session["dn"],
-                          password=admin_password) as c:
+        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
+                          password=admin_pw) as c:
             c.bind()
 
             # Check if the user already exists.
@@ -664,7 +674,7 @@ def post_admin_create_user():
                     LOG.warning("Failed to add %s to group %s: %s", uid, gdn, e2)
 
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
-        return error("Your admin password is incorrect!")
+        return error("LDAP admin bind failed — check admin_dn/admin_password config.")
     except Error as e:
         LOG.error("Create user failed: %s", e)
         return error(str(e))
@@ -705,7 +715,6 @@ def post_admin_create_group():
         if CONF.has_section("admin")
         else _ldap_conf()["base"]
     )
-    admin_password = form("admin-password")
 
     def error(msg):
         return template(
@@ -722,16 +731,21 @@ def post_admin_create_group():
     safe_name = ldap_escape(group_name)
     conf = _ldap_conf()
 
+    admin_dn = CONF["admin"].get("admin_dn", "")
+    admin_pw = CONF["admin"].get("admin_password", "")
+    if not admin_dn or not admin_pw:
+        return error("admin_dn / admin_password not configured.")
+
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=session["dn"],
-                          password=admin_password) as c:
+        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
+                          password=admin_pw) as c:
             c.bind()
 
             dn = "cn=%s,%s" % (safe_name, group_base)
             attrs = {
                 "objectClass": ["top", "groupOfNames"],
                 "cn": group_name,
-                "member": session["dn"],
+                "member": admin_dn,
             }
 
             if not c.add(dn, attributes=attrs):
@@ -741,7 +755,7 @@ def post_admin_create_group():
                 )
 
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
-        return error("Your admin password is incorrect!")
+        return error("LDAP admin bind failed — check admin_dn/admin_password config.")
     except Error as e:
         LOG.error("Create group failed: %s", e)
         return error(str(e))
@@ -779,7 +793,6 @@ def post_admin_modify_group():
     action = form("action")  # "add" or "remove"
     group_dn = form("group-dn")
     member_uid = form("member-uid")
-    admin_password = form("admin-password")
 
     def error(msg):
         return template(
@@ -799,9 +812,14 @@ def post_admin_modify_group():
     conf = _ldap_conf()
     safe_uid = ldap_escape(member_uid)
 
+    admin_dn = CONF["admin"].get("admin_dn", "")
+    admin_pw = CONF["admin"].get("admin_password", "")
+    if not admin_dn or not admin_pw:
+        return error("admin_dn / admin_password not configured.")
+
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=session["dn"],
-                          password=admin_password) as c:
+        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
+                          password=admin_pw) as c:
             c.bind()
 
             # Find the member's DN.
@@ -818,7 +836,7 @@ def post_admin_modify_group():
                 )
 
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
-        return error("Your admin password is incorrect!")
+        return error("LDAP admin bind failed — check admin_dn/admin_password config.")
     except Error as e:
         LOG.error("Group modify failed: %s", e)
         return error(str(e))

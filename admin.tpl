@@ -99,13 +99,6 @@
                 </button>
               </div>
 
-              <div class="md-field">
-                <span class="md-field__icon material-symbols-outlined">shield_person</span>
-                <input class="md-field__input md-field__input--password" name="admin-password" type="password"
-                       required placeholder=" " aria-label="Your admin password">
-                <span class="md-field__label">Your admin password</span>
-                <span class="md-field__outline"></span>
-              </div>
 
               <div class="md-helper-text">
                 <span class="material-symbols-outlined md-helper-text__icon">info</span>
@@ -187,13 +180,6 @@
                 <input type="hidden" name="groups" id="selected-groups" value="">
               </div>
 
-              <div class="md-field">
-                <span class="md-field__icon material-symbols-outlined">shield_person</span>
-                <input class="md-field__input md-field__input--password" name="admin-password" type="password"
-                       required placeholder=" " aria-label="Your admin password">
-                <span class="md-field__label">Your admin password</span>
-                <span class="md-field__outline"></span>
-              </div>
 
               <button type="submit" class="md-filled-button">
                 <span class="material-symbols-outlined">person_add</span>
