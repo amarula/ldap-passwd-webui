@@ -34,9 +34,11 @@
   <div class="app-layout">
     <header class="md-top-app-bar">
       <div class="md-top-app-bar__row">
-        <span class="material-symbols-outlined md-top-app-bar__icon">{{ get('page_icon', 'lock') }}</span>
-        <span class="md-top-app-bar__title">{{ page_title }}</span>
-        <div class="md-top-app-bar__actions">
+        <div class="md-top-app-bar__leading">
+          <span class="material-symbols-outlined md-top-app-bar__icon">{{ get('page_icon', 'lock') }}</span>
+        </div>
+        <h1 class="md-top-app-bar__title">{{ page_title }}</h1>
+        <div class="md-top-app-bar__trailing">
           % if get('admin_session'):
           <a href="{{ base_path }}/admin" class="md-top-app-bar__admin-link" title="Admin Panel">
             <span class="material-symbols-outlined">admin_panel_settings</span>

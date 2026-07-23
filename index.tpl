@@ -38,16 +38,19 @@
     <!-- App bar -->
     <header class="md-top-app-bar">
       <div class="md-top-app-bar__row">
-        <a href="{{ base_path }}/" class="md-top-app-bar__home-link" title="Home">
-          <span class="material-symbols-outlined">arrow_back</span>
-        </a>
-        <span class="md-top-app-bar__title">{{ page_title }}</span>
-        <span class="md-top-app-bar__spacer"></span>
-        % if get('admin_session'):
-        <a href="{{ base_path }}/admin" class="md-top-app-bar__admin-link" title="Admin Panel">
-          <span class="material-symbols-outlined">admin_panel_settings</span>
-        </a>
-        % end
+        <div class="md-top-app-bar__leading">
+          <a href="{{ base_path }}/" class="md-top-app-bar__home-link" title="Dashboard">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </a>
+        </div>
+        <h1 class="md-top-app-bar__title">{{ page_title }}</h1>
+        <div class="md-top-app-bar__trailing">
+          % if get('admin_session'):
+          <a href="{{ base_path }}/admin" class="md-top-app-bar__admin-link" title="Admin Panel">
+            <span class="material-symbols-outlined">admin_panel_settings</span>
+          </a>
+          % end
+        </div>
       </div>
     </header>
 
