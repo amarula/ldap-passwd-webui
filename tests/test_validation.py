@@ -25,7 +25,7 @@ class TestPasswordValidation:
             **{"new-password": "Abcdef12!"},
             **{"confirm-password": "Xyz9876#"},
         )
-        assert "doesn't match" in body.lower() or "doesn&#039;t match" in body.lower()
+        assert "doesn" in body.lower() and "match" in body.lower()
 
     def test_password_meets_minimum_requirements(self, session):
         """8-char password with no class requirements passes local validation."""

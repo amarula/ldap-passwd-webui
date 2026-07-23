@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import hmac
+import html
 import json
 import logging
 import os
@@ -1221,7 +1222,10 @@ SimpleTemplate.defaults["alerts"] = []
 SimpleTemplate.defaults.setdefault("base_path", "")
 # Helper for safely embedding strings in JavaScript single-quoted literals.
 def _js_escape(s: str) -> str:
-    return s.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
+    # Decode HTML entities first (messages come through html_escape),
+    # then escape for JS single-quoted string literals.
+    plain = html.unescape(s)
+    return plain.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
 SimpleTemplate.defaults["js_escape"] = _js_escape
 
 if __name__ == "__main__":
