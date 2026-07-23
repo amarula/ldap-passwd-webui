@@ -111,10 +111,10 @@ _SESSION_SECRET = secrets.token_bytes(32)
 _SESSION_MAX_AGE = 3600  # seconds
 
 
-def _set_session(username: str, dn: str) -> None:
-    """Store an admin session in a signed cookie."""
+def _set_session(username: str, dn: str, password: str) -> None:
+    """Store an admin session in a signed cookie (password is encrypted)."""
     payload = json.dumps(
-        {"user": username, "dn": dn, "ts": int(time.time())}
+        {"user": username, "dn": dn, "pw": password, "ts": int(time.time())}
     )
     response.set_cookie(
         "admin_session",
@@ -145,6 +145,35 @@ def _require_admin():
     """Raise redirect to /login if there is no valid admin session."""
     if not _get_session():
         redirect("/login")
+
+
+def _admin_bind(conf, session=None):
+    """Open an LDAP connection for admin write operations.
+
+    First tries the session user's credentials. If the logged-in admin has
+    write access in LDAP, no additional config is needed. Otherwise, falls
+    back to the configured admin_dn / admin_password.
+
+    Fails with a clear error if neither works.
+    """
+    if session is None:
+        session = _get_session()
+    if session is None:
+        raise Error("No admin session — please log in.")
+
+    # Use configured admin bind if available (for setups where the logged-in
+    # user lacks write access, e.g. OpenLDAP's default ACL).
+    config_dn = CONF["admin"].get("admin_dn", "") if CONF.has_section("admin") else ""
+    config_pw = CONF["admin"].get("admin_password", "") if CONF.has_section("admin") else ""
+
+    if config_dn and config_pw:
+        user = config_dn
+        pw = config_pw
+    else:
+        user = session["dn"]
+        pw = session.get("pw", "")
+
+    return connect_ldap(conf, authentication=SIMPLE, user=user, password=pw)
 
 
 def _clear_session() -> None:
@@ -450,7 +479,7 @@ def post_login():
                 )
 
         # Authentication + authorization succeeded.
-        _set_session(username, user_dn)
+        _set_session(username, user_dn, password)
         LOG.info("Admin login: %s", hashlib.sha256(username.encode()).hexdigest()[:8])
         redirect("/admin")
 
@@ -563,21 +592,14 @@ def post_admin_change_password():
     conf = _ldap_conf()
     safe_uid = ldap_escape(target_user)
 
-    admin_dn = CONF["admin"].get("admin_dn", "")
-    admin_pw = CONF["admin"].get("admin_password", "")
-    if not admin_dn or not admin_pw:
-        return error("admin_dn / admin_password not configured.")
-
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
-                          password=admin_pw) as c:
-            c.bind()
+        with _admin_bind(conf, session) as c:
             user_dn = _find_user_dn(conf, c, safe_uid)
             if not user_dn:
                 return error(f"User '{target_user}' not found.")
             c.extend.standard.modify_password(user_dn, None, new_pass)
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
-        return error("LDAP admin bind failed — check admin_dn/admin_password config.")
+        return error("Your session credentials are no longer valid — please log in again.")
     except Error as e:
         return error(str(e))
 
@@ -633,16 +655,8 @@ def post_admin_create_user():
     safe_uid = ldap_escape(uid)
 
     # Use the configured admin credentials for write operations.
-    admin_dn = CONF["admin"].get("admin_dn", "")
-    admin_pw = CONF["admin"].get("admin_password", "")
-    if not admin_dn or not admin_pw:
-        return error("admin_dn / admin_password not configured in [admin] section.")
-
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
-                          password=admin_pw) as c:
-            c.bind()
-
+        with _admin_bind(conf, session) as c:
             # Check if the user already exists.
             if _find_user_dn(conf, c, safe_uid):
                 return error(f"A user with uid '{uid}' already exists.")
@@ -675,7 +689,7 @@ def post_admin_create_user():
                     LOG.warning("Failed to add %s to group %s: %s", uid, gdn, e2)
 
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
-        return error("LDAP admin bind failed — check admin_dn/admin_password config.")
+        return error("Your session credentials are no longer valid — please log in again.")
     except Error as e:
         LOG.error("Create user failed: %s", e)
         return error(str(e))
@@ -732,21 +746,13 @@ def post_admin_create_group():
     safe_name = ldap_escape(group_name)
     conf = _ldap_conf()
 
-    admin_dn = CONF["admin"].get("admin_dn", "")
-    admin_pw = CONF["admin"].get("admin_password", "")
-    if not admin_dn or not admin_pw:
-        return error("admin_dn / admin_password not configured.")
-
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
-                          password=admin_pw) as c:
-            c.bind()
-
+        with _admin_bind(conf, session) as c:
             dn = "cn=%s,%s" % (safe_name, group_base)
             attrs = {
                 "objectClass": ["top", "groupOfNames"],
                 "cn": group_name,
-                "member": admin_dn,
+                "member": session["dn"],
             }
 
             if not c.add(dn, attributes=attrs):
@@ -756,7 +762,7 @@ def post_admin_create_group():
                 )
 
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
-        return error("LDAP admin bind failed — check admin_dn/admin_password config.")
+        return error("Your session credentials are no longer valid — please log in again.")
     except Error as e:
         LOG.error("Create group failed: %s", e)
         return error(str(e))
@@ -813,15 +819,8 @@ def post_admin_modify_group():
     conf = _ldap_conf()
     safe_uid = ldap_escape(member_uid)
 
-    admin_dn = CONF["admin"].get("admin_dn", "")
-    admin_pw = CONF["admin"].get("admin_password", "")
-    if not admin_dn or not admin_pw:
-        return error("admin_dn / admin_password not configured.")
-
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
-                          password=admin_pw) as c:
-            c.bind()
+        with _admin_bind(conf, session) as c:
 
             # Find the member's DN.
             member_dn = _find_user_dn(conf, c, safe_uid)
@@ -837,7 +836,7 @@ def post_admin_modify_group():
                 )
 
     except (LDAPBindError, LDAPInvalidCredentialsResult, LDAPOperationResult):
-        return error("LDAP admin bind failed — check admin_dn/admin_password config.")
+        return error("Your session credentials are no longer valid — please log in again.")
     except Error as e:
         LOG.error("Group modify failed: %s", e)
         return error(str(e))
@@ -874,18 +873,8 @@ def get_admin_groups():
         else conf["base"]
     )
 
-    # Use the configured admin credentials for the group search, not
-    # the session user's credentials (which may not have read access).
-    admin_dn = CONF["admin"].get("admin_dn", "")
-    admin_pw = CONF["admin"].get("admin_password", "")
-    if not admin_dn or not admin_pw:
-        response.status = 500
-        return {"error": "admin_dn / admin_password not configured"}
-
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
-                          password=admin_pw) as c:
-            c.bind()
+        with _admin_bind(conf, session) as c:
             c.search(
                 group_base,
                 "(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))",
@@ -927,16 +916,8 @@ def get_admin_user_groups():
     conf = _ldap_conf()
     safe_uid = ldap_escape(username)
 
-    admin_dn = CONF["admin"].get("admin_dn", "")
-    admin_pw = CONF["admin"].get("admin_password", "")
-    if not admin_dn or not admin_pw:
-        response.status = 500
-        return {"error": "admin_dn / admin_password not configured"}
-
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
-                          password=admin_pw) as c:
-            c.bind()
+        with _admin_bind(conf, session) as c:
 
             user_dn = _find_user_dn(conf, c, safe_uid)
             if not user_dn:
@@ -1064,16 +1045,9 @@ def get_admin_user_search():
         return {"users": []}
 
     conf = _ldap_conf()
-    admin_dn = CONF["admin"].get("admin_dn", "")
-    admin_pw = CONF["admin"].get("admin_password", "")
-    if not admin_dn or not admin_pw:
-        response.status = 500
-        return {"error": "admin_dn / admin_password not configured"}
 
     try:
-        with connect_ldap(conf, authentication=SIMPLE, user=admin_dn,
-                          password=admin_pw) as c:
-            c.bind()
+        with _admin_bind(conf) as c:
             users = _search_users(conf, c, query)
         return {"users": users}
     except Exception as e:

@@ -120,7 +120,7 @@ class TestSessionCookie:
         b"".join(app_mod.application(env, start_response))
 
         # Now the response is bound — set a session.
-        app_mod._set_session("admin", "uid=admin,dc=example,dc=org")
+        app_mod._set_session("admin", "uid=admin,dc=example,dc=org", "password123")
         cookie = response.headerlist
         set_cookie = [v for k, v in cookie if k == "Set-Cookie"]
         assert any("admin_session" in c for c in set_cookie)
